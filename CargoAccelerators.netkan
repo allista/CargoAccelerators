@@ -1,0 +1,46 @@
+{
+    "spec_version": "v1.4",
+    "identifier": "CargoAccelerators",
+    "name": "Cargo Accelerators",
+    "$kref": "#/ckan/spacedock/1123",
+    "abstract": "Gigantic mass accelerators for cargo propulsion.",
+    "author": [
+        "allista"
+    ],
+    "license": "MIT",
+    "resources": {
+        "homepage": "http://forum.kerbalspaceprogram.com/index.php?/topic/154167-122-ground-construction",
+        "bugtracker": "https://github.com/allista/CargoAccelerators/issues",
+        "repository": "https://github.com/allista/CargoAccelerators"
+    },
+    "depends": [
+        {
+            "name": "ModuleManager"
+        },
+        {
+            "name": "AT_Utils"
+        }
+    ],
+    "recommends": [
+        {
+            "name": "GroundConstruction"
+        }
+    ],
+    "suggests": [
+        {
+            "name": "ThrottleControlledAvionics"
+        },
+        {
+            "name": "ConfigurableContainers"
+        },
+        {
+            "name": "Hangar"
+        }
+    ],
+    "install": [
+        {
+            "file": "GameData/CargoAccelerators",
+            "install_to": "GameData"
+        }
+    ]
+}
