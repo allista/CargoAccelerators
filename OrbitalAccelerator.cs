@@ -108,7 +108,7 @@ namespace CargoAccelerators
             var stateField = Fields[nameof(StateChoice)];
             Utils.SetupChooser(states, states, stateField);
             stateField.OnValueModified += onStateChange;
-            updateState();
+            setState(State);
         }
 
         private void OnDestroy()
@@ -117,9 +117,25 @@ namespace CargoAccelerators
             Fields[nameof(StateChoice)].OnValueModified -= onStateChange;
         }
 
-        private void updateState()
+        private void setState(AcceleratorState state)
         {
-            StateChoice = Enum.GetName(typeof(AcceleratorState), State);
+            State = state;
+            var choice = Enum.GetName(typeof(AcceleratorState), State);
+            if(StateChoice != choice)
+            {
+                StateChoice = choice;
+                MonoUtilities.RefreshPartContextWindow(part);
+            }
+            actuateState();
+        }
+
+        private void actuateState()
+        {
+            if(State != AcceleratorState.FIRE && launchCoro != null)
+            {
+                abortLaunch();
+                return;
+            }
             loadingDamper.AttractorEnabled = true;
             loadingDamper.InvertAttractor = false;
             launchingDamper.AttractorEnabled = true;
@@ -149,7 +165,7 @@ namespace CargoAccelerators
             if(!Enum.TryParse<AcceleratorState>(StateChoice, out var state))
                 return;
             State = state;
-            updateState();
+            actuateState();
         }
 
         private void onNumSegmentsChange(object value)
