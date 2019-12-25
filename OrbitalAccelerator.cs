@@ -30,7 +30,11 @@ namespace CargoAccelerators
 
         [KSPField(isPersistant = true)] public AcceleratorState State;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Accelerator State")]
+        [KSPField(guiActive = true,
+            guiActiveEditor = true,
+            guiActiveUnfocused = true,
+            unfocusedRange = 100,
+            guiName = "Accelerator State")]
         [UI_ChooseOption]
         public string StateChoice = string.Empty;
 
