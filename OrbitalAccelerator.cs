@@ -41,6 +41,7 @@ namespace CargoAccelerators
         public ATMagneticDamper loadingDamper;
         public ExtensibleMagneticDamper launchingDamper;
         public GameObject barrelSegmentPrefab;
+        private float vesselRadius;
 
         private struct BarrelSegment
         {
@@ -242,8 +243,14 @@ namespace CargoAccelerators
         public void UpdateParams()
         {
             updateCoMOffset();
+            if(vessel != null)
+            {
+                vesselRadius = vessel.Bounds().size.magnitude;
+                vessel.SetUnpackDistance(vesselRadius * 2);
+            }
 #if DEBUG
             this.Log("CoM offset: {}", part.CoMOffset);
+            this.Log($"vessel radius: {vesselRadius}");
 #endif
         }
 
