@@ -19,8 +19,11 @@ namespace CargoAccelerators
         [KSPField] public float SegmentMass;
         [KSPField] public float SegmentCost;
 
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Segments")]
-        [UI_FloatRange(scene = UI_Scene.Editor, minValue = 0, maxValue = 15, stepIncrement = 1)]
+        [KSPField(isPersistant = true,
+            guiActive = true,
+            guiActiveEditor = true,
+            guiName = "Segments")]
+        [UI_FloatRange(scene = UI_Scene.All, minValue = 0, maxValue = 15, stepIncrement = 1)]
         public float numSegments;
 
         [KSPField(isPersistant = true)] public Vector3 partCoMOffset;
