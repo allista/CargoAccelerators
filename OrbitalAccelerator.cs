@@ -13,7 +13,7 @@ namespace CargoAccelerators
         [KSPField] public string LaunchingDamperID = "LaunchingDamper";
 
         [KSPField] public string BarrelAttachmentTransform = "BarrelAttachment";
-        [KSPField] public string BarrelSegmentTransform = "BarrelSegment";
+        [KSPField] public string SegmentTransform = "BarrelSegment";
         [KSPField] public string NextSegmentTransform = "NextSegment";
         [KSPField] public float SegmentMass;
         [KSPField] public float SegmentCost;
@@ -48,7 +48,7 @@ namespace CargoAccelerators
         public override void OnAwake()
         {
             base.OnAwake();
-            var T = part.FindModelTransform(BarrelSegmentTransform);
+            var T = part.FindModelTransform(SegmentTransform);
             if(T != null)
                 T.gameObject.SetActive(false);
         }
@@ -60,10 +60,10 @@ namespace CargoAccelerators
             this.Log(
                 $"prefab model tree: {DebugUtils.formatTransformTree(part.partInfo.partPrefab.transform)}"); //debug
 #endif
-            var T = part.partInfo.partPrefab.FindModelTransform(BarrelSegmentTransform);
+            var T = part.partInfo.partPrefab.FindModelTransform(SegmentTransform);
             if(T == null)
             {
-                this.Log($"Unable to find {BarrelSegmentTransform} model transform");
+                this.Log($"Unable to find {SegmentTransform} model transform");
                 this.EnableModule(false);
                 return;
             }
