@@ -71,6 +71,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="ExtensibleMagneticDamper.cs" />
         <Compile Include="Globals.cs" />
         <Compile Include="OrbitalAccelerator.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
