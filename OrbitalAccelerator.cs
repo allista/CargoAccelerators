@@ -38,6 +38,15 @@ namespace CargoAccelerators
         [UI_ChooseOption]
         public string StateChoice = string.Empty;
 
+#if DEBUG
+        [KSPField(guiActive = true,
+            guiActiveEditor = true,
+            guiName = "Vessel Mass",
+            guiUnits = "t",
+            guiFormat = "F1")]
+        public float VesselMass;
+#endif
+
         public ATMagneticDamper loadingDamper;
         public ExtensibleMagneticDamper launchingDamper;
         public GameObject barrelSegmentPrefab;
@@ -249,6 +258,10 @@ namespace CargoAccelerators
                 vessel.SetUnpackDistance(vesselRadius * 2);
             }
 #if DEBUG
+            if(vessel != null)
+                VesselMass = vessel.GetTotalMass();
+            else if(HighLogic.LoadedSceneIsEditor)
+                VesselMass = EditorLogic.fetch.ship.GetTotalMass();
             this.Log("CoM offset: {}", part.CoMOffset);
             this.Log($"vessel radius: {vesselRadius}");
 #endif
