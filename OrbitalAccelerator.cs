@@ -16,8 +16,10 @@ namespace CargoAccelerators
         [KSPField] public string SegmentTransform = "BarrelSegment";
         [KSPField] public string SegmentSensorTransform = "BarrelSegmentSensor";
         [KSPField] public string NextSegmentTransform = "NextSegment";
+
         [KSPField] public float SegmentMass;
         [KSPField] public float SegmentCost;
+        [KSPField] public Vector3 SegmentCoM;
 
         [KSPField(isPersistant = true,
             guiActive = true,
@@ -25,8 +27,6 @@ namespace CargoAccelerators
             guiName = "Segments")]
         [UI_FloatRange(scene = UI_Scene.All, minValue = 0, maxValue = 15, stepIncrement = 1)]
         public float numSegments;
-
-        [KSPField(isPersistant = true)] public Vector3 partCoMOffset;
 
         [KSPField(isPersistant = true)] public AcceleratorState State;
 
@@ -217,10 +217,34 @@ namespace CargoAccelerators
                     barrelSegments.RemoveAt(i);
                 }
             }
+            UpdateParams();
 #if DEBUG
             this.Log($"new model tree: {DebugUtils.formatTransformTree(part.transform)}"); //debug
 #endif
             return true;
+        }
+
+        private void updateCoMOffset()
+        {
+            part.CoMOffset = Vector3.zero;
+            if(barrelSegments.Count == 0)
+                return;
+            part.UpdateMass();
+            var ori = part.partTransform.position;
+            var CoM = barrelSegments.Aggregate(
+                Vector3.zero,
+                (current, segment) =>
+                    current
+                    + (segment.segmentGO.transform.TransformPoint(SegmentCoM) - ori) * SegmentMass);
+            part.CoMOffset = part.partTransform.InverseTransformDirection(CoM / part.mass);
+        }
+
+        public void UpdateParams()
+        {
+            updateCoMOffset();
+#if DEBUG
+            this.Log("CoM offset: {}", part.CoMOffset);
+#endif
         }
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit) =>
@@ -240,6 +264,7 @@ namespace CargoAccelerators
         {
             mp.module.SegmentMass = mp.base_module.SegmentMass * scale.absolute.volume;
             mp.module.SegmentCost = mp.base_module.SegmentCost * scale.absolute.volume;
+            mp.module.UpdateParams();
         }
     }
 }
