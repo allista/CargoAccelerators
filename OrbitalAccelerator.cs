@@ -14,6 +14,7 @@ namespace CargoAccelerators
 
         [KSPField] public string BarrelAttachmentTransform = "BarrelAttachment";
         [KSPField] public string SegmentTransform = "BarrelSegment";
+        [KSPField] public string SegmentSensorTransform = "BarrelSegmentSensor";
         [KSPField] public string NextSegmentTransform = "NextSegment";
         [KSPField] public float SegmentMass;
         [KSPField] public float SegmentCost;
@@ -30,17 +31,14 @@ namespace CargoAccelerators
         [UI_ChooseOption]
         public string StateChoice = string.Empty;
 
-        public ATMagneticDamper loadingDamper, launchingDamper;
+        public ATMagneticDamper loadingDamper;
+        public ExtensibleMagneticDamper launchingDamper;
         public GameObject barrelSegmentPrefab;
 
         private struct BarrelSegment
         {
             public GameObject segmentGO;
-
-            public void DestroySegment()
-            {
-                Destroy(segmentGO);
-            }
+            public Transform segmentSensor;
         }
 
         private readonly List<BarrelSegment> barrelSegments = new List<BarrelSegment>();
@@ -75,7 +73,8 @@ namespace CargoAccelerators
                 this.EnableModule(false);
                 return;
             }
-            launchingDamper = ATMagneticDamper.GetDamper(part, LaunchingDamperID);
+            launchingDamper =
+                ATMagneticDamper.GetDamper(part, LaunchingDamperID) as ExtensibleMagneticDamper;
             if(launchingDamper == null)
             {
                 this.Log($"Unable to find launching damper with ID {LoadingDamperID}");
@@ -175,18 +174,39 @@ namespace CargoAccelerators
                         this.Log($"Unable to instantiate {barrelSegmentPrefab.GetID()}");
                         return false;
                     }
+                    var newSegmentSensor =
+                        Part.FindHeirarchyTransform(newSegment.transform,
+                            SegmentSensorTransform);
+                    if(newSegmentSensor == null)
+                    {
+                        this.Log(
+                            $"Unable to find {SegmentSensorTransform} transform in {barrelSegmentPrefab.GetID()}");
+                        Destroy(newSegment);
+                        return false;
+                    }
                     newSegment.transform.localPosition = Vector3.zero;
                     newSegment.transform.localRotation = Quaternion.identity;
+                    if(!launchingDamper.AddDamperExtension(newSegmentSensor))
+                    {
+                        this.Log($"Unable to add damper extension to {newSegmentSensor.GetID()}");
+                        Destroy(newSegment);
+                        return false;
+                    }
                     attachmentPoint.gameObject.SetActive(true);
                     newSegment.SetActive(true);
-                    barrelSegments.Add(new BarrelSegment { segmentGO = newSegment });
+                    barrelSegments.Add(new BarrelSegment
+                    {
+                        segmentGO = newSegment, segmentSensor = newSegmentSensor
+                    });
                 }
             }
             else
             {
                 for(var i = haveSegments - 1; i >= numSegments_i; i--)
                 {
-                    barrelSegments[i].DestroySegment();
+                    var segment = barrelSegments[i];
+                    launchingDamper.RemoveDamperExtension(segment.segmentSensor);
+                    Destroy(segment.segmentGO);
                     barrelSegments.RemoveAt(i);
                 }
             }
