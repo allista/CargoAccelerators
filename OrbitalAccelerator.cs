@@ -19,6 +19,7 @@ namespace CargoAccelerators
         [KSPField] public string SegmentSensorTransform = "BarrelSegmentSensor";
         [KSPField] public string NextSegmentTransform = "NextSegment";
 
+        [KSPField] public int MaxSegments = 20;
         [KSPField] public float SegmentMass;
         [KSPField] public float SegmentCost;
         [KSPField] public Vector3 SegmentCoM;
@@ -27,7 +28,7 @@ namespace CargoAccelerators
             guiActive = true,
             guiActiveEditor = true,
             guiName = "Segments")]
-        [UI_FloatRange(scene = UI_Scene.All, minValue = 0, maxValue = 15, stepIncrement = 1)]
+        [UI_FloatRange(scene = UI_Scene.All, minValue = 0, maxValue = 20, stepIncrement = 1)]
         public float numSegments;
 
         [KSPField(isPersistant = true)] public AcceleratorState State;
@@ -105,7 +106,12 @@ namespace CargoAccelerators
                 this.EnableModule(false);
                 return;
             }
-            Fields[nameof(numSegments)].OnValueModified += onNumSegmentsChange;
+            var numSegmentsField = Fields[nameof(numSegments)];
+            numSegmentsField.OnValueModified += onNumSegmentsChange;
+            if(numSegmentsField.uiControlEditor is UI_FloatRange numSegmentsControlEditor)
+                numSegmentsControlEditor.maxValue = MaxSegments;
+            if(numSegmentsField.uiControlFlight is UI_FloatRange numSegmentsControlFlight)
+                numSegmentsControlFlight.maxValue = MaxSegments;
             var states = Enum.GetNames(typeof(AcceleratorState));
             var stateField = Fields[nameof(StateChoice)];
             Utils.SetupChooser(states, states, stateField);
