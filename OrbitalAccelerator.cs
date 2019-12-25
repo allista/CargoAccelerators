@@ -75,7 +75,7 @@ namespace CargoAccelerators
             base.OnStart(state);
 #if DEBUG
             this.Log(
-                $"prefab model tree: {DebugUtils.formatTransformTree(part.partInfo.partPrefab.transform)}"); //debug
+                $"prefab model tree: {DebugUtils.formatTransformTree(part.partInfo.partPrefab.transform)}");
 #endif
             var T = part.partInfo.partPrefab.FindModelTransform(SegmentTransform);
             if(T == null)
@@ -326,7 +326,7 @@ namespace CargoAccelerators
             }
             UpdateParams();
 #if DEBUG
-            this.Log($"new model tree: {DebugUtils.formatTransformTree(part.transform)}"); //debug
+            this.Log($"new model tree: {DebugUtils.formatTransformTree(part.transform)}");
 #endif
             return true;
         }
