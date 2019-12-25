@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AT_Utils;
+using KSP.Localization;
 using UnityEngine;
 
 namespace CargoAccelerators
@@ -151,13 +153,92 @@ namespace CargoAccelerators
                     launchingDamper.EnableDamper(false);
                     break;
                 case AcceleratorState.FIRE:
-                    loadingDamper.EnableDamper(false);
-                    launchingDamper.Fields.SetValue<float>(nameof(ATMagneticDamper.Attenuation), 0);
-                    launchingDamper.EnableDamper(true);
+                    launchCoro = StartCoroutine(launchPayload());
                     break;
                 default:
                     goto case AcceleratorState.OFF;
             }
+        }
+
+        private Vessel payload;
+        private VesselRanges payloadRanges;
+        private Coroutine launchCoro;
+
+        private IEnumerator<YieldInstruction> launchPayload()
+        {
+            yield return null;
+            var numberOfVessels = loadingDamper.VesselsInside.Count;
+            if(numberOfVessels != 1)
+            {
+                abortLaunchInternal(numberOfVessels == 0
+                    ? "No payload in loading area."
+                    : "Multiple vessels in loading area.");
+                yield break;
+            }
+            FlightGlobals.FindVessel(loadingDamper.VesselsInside.First(), out payload);
+            if(payload == null)
+            {
+                abortLaunchInternal("Unable to find payload.");
+                yield break;
+            }
+            Utils.Message($"Launching: {Localizer.Format(vessel.vesselName)}");
+            payloadRanges = payload.SetUnpackDistance(vesselRadius * 2);
+            loadingDamper.EnableDamper(false);
+            launchingDamper.Fields.SetValue<float>(nameof(ATMagneticDamper.Attenuation), 0);
+            launchingDamper.EnableDamper(true);
+            while(launchingDamper.VesselsInside.Count == 0)
+                yield return null;
+            while(true)
+            {
+                yield return null;
+                if(payload == null)
+                {
+                    abortLaunchInternal("Payload lost.");
+                    yield break;
+                }
+                switch(launchingDamper.VesselsInside.Count)
+                {
+                    case 0:
+                        endLaunch();
+                        Utils.Message("Launch succeeded.");
+                        yield break;
+                    case 1:
+                        var vesselId = launchingDamper.VesselsInside.First();
+                        if(payload.persistentId == vesselId)
+                            continue;
+                        abortLaunchInternal("Payload changed.");
+                        yield break;
+                    default:
+                        abortLaunchInternal("Multiple vessels in accelerator.");
+                        yield break;
+                }
+            }
+        }
+
+        private void endLaunch()
+        {
+            launchCoro = null;
+            if(payloadRanges != null && payload != null)
+                payload.vesselRanges = payloadRanges;
+            payloadRanges = null;
+            payload = null;
+            setState(AcceleratorState.OFF);
+        }
+
+        private void abortLaunchInternal(string message = null)
+        {
+            Utils.Message("Launch sequence aborted.");
+            if(string.IsNullOrEmpty(message))
+                Utils.Message(message);
+            endLaunch();
+        }
+
+        private void abortLaunch()
+        {
+            if(launchCoro == null)
+                return;
+            StopCoroutine(launchCoro);
+            abortLaunchInternal();
         }
 
         private void onStateChange(object value)
