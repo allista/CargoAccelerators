@@ -179,15 +179,15 @@ namespace CargoAccelerators
         private IEnumerator<YieldInstruction> launchPayload()
         {
             yield return null;
-            var numberOfVessels = loadingDamper.VesselsInside.Count;
+            var numberOfVessels = launchingDamper.VesselsInside.Count;
             if(numberOfVessels != 1)
             {
                 abortLaunchInternal(numberOfVessels == 0
-                    ? "No payload in loading area."
-                    : "Multiple vessels in loading area.");
+                    ? "No payload in acceleration area."
+                    : "Multiple vessels in acceleration area.");
                 yield break;
             }
-            FlightGlobals.FindVessel(loadingDamper.VesselsInside.First(), out payload);
+            FlightGlobals.FindVessel(launchingDamper.VesselsInside.First(), out payload);
             if(payload == null)
             {
                 abortLaunchInternal("Unable to find payload.");
@@ -199,8 +199,6 @@ namespace CargoAccelerators
             loadingDamper.EnableDamper(false);
             launchingDamper.Fields.SetValue<float>(nameof(ATMagneticDamper.Attenuation), 0);
             launchingDamper.EnableDamper(true);
-            while(launchingDamper.VesselsInside.Count == 0)
-                yield return null;
             while(true)
             {
                 yield return null;
