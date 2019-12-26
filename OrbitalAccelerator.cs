@@ -187,7 +187,7 @@ namespace CargoAccelerators
                 abortLaunchInternal("Unable to find payload.");
                 yield break;
             }
-            Utils.Message($"Launching: {Localizer.Format(vessel.vesselName)}");
+            Utils.Message($"Launching: {Localizer.Format(payload.vesselName)}");
             payloadRanges = payload.SetUnpackDistance(vesselRadius * 2);
             loadingDamper.EnableDamper(false);
             launchingDamper.Fields.SetValue<float>(nameof(ATMagneticDamper.Attenuation), 0);
