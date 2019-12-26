@@ -116,6 +116,7 @@ namespace CargoAccelerators
             var stateField = Fields[nameof(StateChoice)];
             Utils.SetupChooser(states, states, stateField);
             stateField.OnValueModified += onStateChange;
+            loadingDamper.OnDamperAutoEnabled += autoLoad;
             setState(State);
         }
 
@@ -123,7 +124,11 @@ namespace CargoAccelerators
         {
             Fields[nameof(numSegments)].OnValueModified -= onNumSegmentsChange;
             Fields[nameof(StateChoice)].OnValueModified -= onStateChange;
+            if(loadingDamper != null)
+                loadingDamper.OnDamperAutoEnabled -= autoLoad;
         }
+
+        private void autoLoad() => setState(AcceleratorState.LOAD);
 
         private void setState(AcceleratorState state)
         {
@@ -151,6 +156,7 @@ namespace CargoAccelerators
             switch(State)
             {
                 case AcceleratorState.OFF:
+                    loadingDamper.AutoEnable = true;
                     loadingDamper.EnableDamper(false);
                     launchingDamper.EnableDamper(false);
                     break;
@@ -189,6 +195,7 @@ namespace CargoAccelerators
             }
             Utils.Message($"Launching: {Localizer.Format(payload.vesselName)}");
             payloadRanges = payload.SetUnpackDistance(vesselRadius * 2);
+            loadingDamper.AutoEnable = false;
             loadingDamper.EnableDamper(false);
             launchingDamper.Fields.SetValue<float>(nameof(ATMagneticDamper.Attenuation), 0);
             launchingDamper.EnableDamper(true);
