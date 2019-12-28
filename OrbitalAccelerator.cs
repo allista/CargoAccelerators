@@ -201,6 +201,8 @@ namespace CargoAccelerators
                 yield break;
             }
             Utils.Message($"Launching: {Localizer.Format(payload.vesselName)}");
+            var hostV = vessel.orbit.vel;
+            var payloadV = payload.orbit.vel;
             payloadRanges = payload.SetUnpackDistance(vesselRadius * 2);
             loadingDamper.AutoEnable = false;
             loadingDamper.EnableDamper(false);
@@ -217,6 +219,11 @@ namespace CargoAccelerators
                 switch(launchingDamper.VesselsInside.Count)
                 {
                     case 0:
+                        this.Log("Accelerator abs dV: {}",
+                            (vessel.orbit.vel - hostV).magnitude); //debug
+                        this.Log("Payload dV: abs {}, rel {}",
+                            (payload.orbit.vel - payloadV).magnitude,
+                            (payload.orbit.vel - vessel.orbit.vel).magnitude); //debug
                         endLaunch();
                         Utils.Message("Launch succeeded.");
                         yield break;
@@ -239,6 +246,35 @@ namespace CargoAccelerators
             launchingDamper.AttractorPower = launchingAttractorOrigPower;
             if(maxAcceleration < launchingAttractorOrigPower)
                 launchingDamper.AttractorPower = (float)maxAcceleration;
+            var vslBounds = payload.Bounds();
+            var launchPath = Vector3.Project(vslBounds.min,
+                launchingDamper.attractorAxisW);
+            Transform endT = null;
+            if(barrelSegments.Count == 0)
+                endT = part.FindModelTransform(BarrelAttachmentTransform);
+            else
+            {
+                var lastSegment = barrelSegments.Last().segmentGO.transform;
+                endT = Part.FindHeirarchyTransform(lastSegment, NextSegmentTransform);
+            }
+            if(endT != null)
+                launchPath -= endT.position;
+            else
+            {
+                Utils.Message(
+                    $"Unable to calculate launch path. No {BarrelAttachmentTransform} found.");
+                return false;
+            }
+            var vslMass = payload.GetTotalMass();
+            var maxForce = Math.Min(launchingDamper.MaxForce,
+                launchingDamper.AttractorPower * vslMass);
+            maxAcceleration = maxForce / vslMass;
+            var maxAccelerationTime = Math.Sqrt(2 * launchPath.magnitude / maxAcceleration);
+            Utils.Message(
+                $"Maximum acceleration: {maxAcceleration / Utils.G0:F1}g");
+            this.Log($"Maximum launch path: {launchPath.magnitude:F1} m");
+            this.Log($"Maximum launch time: {maxAccelerationTime:F1} s");
+            this.Log($"Maximum relative dV: {maxAccelerationTime * maxAcceleration:F1} m/s");
             return true;
         }
 
