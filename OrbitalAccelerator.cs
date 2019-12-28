@@ -444,6 +444,7 @@ namespace CargoAccelerators
                 VesselMass = EditorLogic.fetch.ship.GetTotalMass();
             this.Log("CoM offset: {}", part.CoMOffset);
             this.Log($"vessel radius: {vesselRadius}");
+            this.Log($"vessel mass: {VesselMass}");
 #endif
         }
 
