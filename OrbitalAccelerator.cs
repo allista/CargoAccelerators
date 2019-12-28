@@ -193,6 +193,11 @@ namespace CargoAccelerators
                 abortLaunchInternal("Unable to find payload.");
                 yield break;
             }
+            if(!preLaunchCheck())
+            {
+                abortLaunchInternal();
+                yield break;
+            }
             Utils.Message($"Launching: {Localizer.Format(payload.vesselName)}");
             payloadRanges = payload.SetUnpackDistance(vesselRadius * 2);
             loadingDamper.AutoEnable = false;
@@ -224,6 +229,11 @@ namespace CargoAccelerators
                         yield break;
                 }
             }
+        }
+
+        private bool preLaunchCheck()
+        {
+            return true;
         }
 
         private void endLaunch()
