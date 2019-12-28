@@ -347,7 +347,6 @@ namespace CargoAccelerators
         {
             var haveSegments = barrelSegments.Count;
             var numSegments_i = (int)numSegments;
-            this.Log($"updateSegments: have {haveSegments}, need {numSegments_i}"); //debug
             if(numSegments_i == haveSegments)
                 return true;
             if(numSegments_i > haveSegments)
@@ -412,9 +411,6 @@ namespace CargoAccelerators
                 }
             }
             UpdateParams();
-#if DEBUG
-            this.Log($"new model tree: {DebugUtils.formatTransformTree(part.transform)}");
-#endif
             return true;
         }
 
