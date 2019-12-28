@@ -215,20 +215,35 @@ PrefabInstance:
       propertyPath: m_Name
       value: OrbitalAccelerator
       objectReference: {fileID: 0}
-    - target: {fileID: 6729315592950115485, guid: 72d67055a8a4ec86f83598fc61663fcb,
+    - target: {fileID: -8504959014385180324, guid: 72d67055a8a4ec86f83598fc61663fcb,
         type: 3}
-      propertyPath: m_IsActive
-      value: 1
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8392390674035159569, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Name
+      value: RCSThruster
       objectReference: {fileID: 0}
     - target: {fileID: -7970015159913375192, guid: 72d67055a8a4ec86f83598fc61663fcb,
         type: 3}
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7928773005873715859, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: -5997482020344008050, guid: 72d67055a8a4ec86f83598fc61663fcb,
         type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -5895848380303560575, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Name
+      value: RCSThruster
       objectReference: {fileID: 0}
     - target: {fileID: -5633444354368527871, guid: 72d67055a8a4ec86f83598fc61663fcb,
         type: 3}
@@ -238,6 +253,11 @@ PrefabInstance:
     - target: {fileID: -4953648307048539788, guid: 72d67055a8a4ec86f83598fc61663fcb,
         type: 3}
       propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4624223664299948993, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 72d67055a8a4ec86f83598fc61663fcb,
@@ -295,6 +315,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -3435800411571013025, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Name
+      value: RCSThruster
+      objectReference: {fileID: 0}
+    - target: {fileID: -3281369258470290637, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Name
+      value: RCSThruster
+      objectReference: {fileID: 0}
     - target: {fileID: -3139942341146700839, guid: 72d67055a8a4ec86f83598fc61663fcb,
         type: 3}
       propertyPath: m_Enabled
@@ -315,6 +345,11 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 527195281875292689, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Name
+      value: RCSThruster
+      objectReference: {fileID: 0}
     - target: {fileID: 1181954448086387414, guid: 72d67055a8a4ec86f83598fc61663fcb,
         type: 3}
       propertyPath: m_Enabled
@@ -325,10 +360,50 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1599473438485312662, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Name
+      value: RCSThruster
+      objectReference: {fileID: 0}
+    - target: {fileID: 1764304528484843385, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2429409608013345288, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Name
+      value: RCSThruster
+      objectReference: {fileID: 0}
+    - target: {fileID: 2901342346343829876, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Name
+      value: RCSThruster
+      objectReference: {fileID: 0}
+    - target: {fileID: 4865436457318597811, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Name
+      value: RCSThruster
+      objectReference: {fileID: 0}
+    - target: {fileID: 6729315592950115485, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6840560464891824633, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7255905424615826271, guid: 72d67055a8a4ec86f83598fc61663fcb,
         type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7342125260699992834, guid: 72d67055a8a4ec86f83598fc61663fcb,
+        type: 3}
+      propertyPath: m_Name
+      value: RCSThruster
       objectReference: {fileID: 0}
     - target: {fileID: 7438527664361982480, guid: 72d67055a8a4ec86f83598fc61663fcb,
         type: 3}
@@ -345,30 +420,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1764304528484843385, guid: 72d67055a8a4ec86f83598fc61663fcb,
+    - target: {fileID: 8354821469256625437, guid: 72d67055a8a4ec86f83598fc61663fcb,
         type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6840560464891824633, guid: 72d67055a8a4ec86f83598fc61663fcb,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -7928773005873715859, guid: 72d67055a8a4ec86f83598fc61663fcb,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -4624223664299948993, guid: 72d67055a8a4ec86f83598fc61663fcb,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8504959014385180324, guid: 72d67055a8a4ec86f83598fc61663fcb,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 0
+      propertyPath: m_Name
+      value: RCSThruster
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1181954448086387414, guid: 72d67055a8a4ec86f83598fc61663fcb, type: 3}

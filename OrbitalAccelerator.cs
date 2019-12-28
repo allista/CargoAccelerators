@@ -410,8 +410,21 @@ namespace CargoAccelerators
                     barrelSegments.RemoveAt(i);
                 }
             }
+            StartCoroutine(delayedUpdateRCS());
             UpdateParams();
             return true;
+        }
+
+        private IEnumerator<YieldInstruction> delayedUpdateRCS()
+        {
+            yield return null;
+            part.Effects.Initialize();
+            part.Modules.GetModules<ModuleRCS>()
+                .ForEach(rcs =>
+                {
+                    rcs.OnStart(part.StartState());
+                    rcs.Log("thrust transforms: {}", rcs.thrusterTransforms); //debug
+                });
         }
 
         private void updateCoMOffset()
