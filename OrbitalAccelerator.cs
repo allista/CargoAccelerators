@@ -54,6 +54,7 @@ namespace CargoAccelerators
         public ExtensibleMagneticDamper launchingDamper;
         public GameObject barrelSegmentPrefab;
         private float vesselRadius;
+        private float launchingAttractorOrigPower;
 
         private struct BarrelSegment
         {
@@ -101,6 +102,7 @@ namespace CargoAccelerators
                 this.EnableModule(false);
                 return;
             }
+            launchingAttractorOrigPower = launchingDamper.AttractorPower;
             if(!updateSegments())
             {
                 this.EnableModule(false);
@@ -233,7 +235,35 @@ namespace CargoAccelerators
 
         private bool preLaunchCheck()
         {
+            var maxAcceleration = maxLaunchAcceleration(payload);
+            launchingDamper.AttractorPower = launchingAttractorOrigPower;
+            if(maxAcceleration < launchingAttractorOrigPower)
+                launchingDamper.AttractorPower = (float)maxAcceleration;
             return true;
+        }
+
+        private static double maxLaunchAcceleration(Vessel vsl)
+        {
+            var minAccelerationTolerance = double.MaxValue;
+            foreach(var vslPart in vsl.Parts)
+            {
+                if(vslPart.gTolerance < minAccelerationTolerance)
+                    minAccelerationTolerance = vslPart.gTolerance;
+            }
+            if(HighLogic.CurrentGame.Parameters.CustomParams<GameParameters.AdvancedParams>()
+                .GKerbalLimits)
+            {
+                foreach(var crewMember in vsl.GetVesselCrew())
+                {
+                    var crewGTolerance = ProtoCrewMember.GToleranceMult(crewMember)
+                                         * HighLogic.CurrentGame.Parameters
+                                             .CustomParams<GameParameters.AdvancedParams>()
+                                             .KerbalGToleranceMult;
+                    if(crewGTolerance < minAccelerationTolerance)
+                        minAccelerationTolerance = crewGTolerance;
+                }
+            }
+            return minAccelerationTolerance * Utils.G0 * 0.98;
         }
 
         private void endLaunch()
