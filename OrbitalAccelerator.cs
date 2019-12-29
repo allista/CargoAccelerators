@@ -9,7 +9,7 @@ namespace CargoAccelerators
 {
     public enum AcceleratorState { OFF, LOAD, FIRE }
 
-    public class OrbitalAccelerator : PartModule, IPartMassModifier, IPartCostModifier
+    public class OrbitalAccelerator : PartModule, IPartMassModifier, IPartCostModifier, ITargetable
     {
         [KSPField] public string LoadingDamperID = "LoadingDamper";
         [KSPField] public string LaunchingDamperID = "LaunchingDamper";
@@ -128,6 +128,13 @@ namespace CargoAccelerators
             Fields[nameof(StateChoice)].OnValueModified -= onStateChange;
             if(loadingDamper != null)
                 loadingDamper.OnDamperAutoEnabled -= autoLoad;
+            if(FlightGlobals.fetch == null)
+                return;
+            if(ReferenceEquals(FlightGlobals.fetch.VesselTarget, this))
+                vessel.StartCoroutine(CallbackUtil.DelayedCallback(1,
+                    FlightGlobals.fetch.SetVesselTarget,
+                    vessel,
+                    false));
         }
 
         private void autoLoad() => setState(AcceleratorState.LOAD);
@@ -470,6 +477,39 @@ namespace CargoAccelerators
             barrelSegments.Count * SegmentCost;
 
         public ModifierChangeWhen GetModuleCostChangeWhen() => ModifierChangeWhen.CONSTANTLY;
+
+        public Transform GetTransform()
+        {
+            if(loadingDamper != null && loadingDamper.attractor != null)
+                return loadingDamper.attractor;
+            return vessel.GetTransform();
+        }
+
+        public Vector3 GetObtVelocity() => vessel.GetObtVelocity();
+
+        public Vector3 GetSrfVelocity() => vessel.GetSrfVelocity();
+
+        public Vector3 GetFwdVector()
+        {
+            if(loadingDamper != null && loadingDamper.attractor != null)
+                return loadingDamper.attractorAxisW;
+            return vessel.GetFwdVector();
+        }
+
+        public Vessel GetVessel() => vessel;
+
+        public string GetName() => part.Title();
+
+        public string GetDisplayName() => GetName();
+
+        public Orbit GetOrbit() => vessel.GetOrbit();
+
+        public OrbitDriver GetOrbitDriver() => vessel.GetOrbitDriver();
+
+        public VesselTargetModes GetTargetingMode() =>
+            VesselTargetModes.DirectionVelocityAndOrientation;
+
+        public bool GetActiveTargetable() => false;
     }
 
     public class OrbitalAcceleratorUpdater : ModuleUpdater<OrbitalAccelerator>
