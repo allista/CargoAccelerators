@@ -424,14 +424,10 @@ namespace CargoAccelerators
 
         private IEnumerator<YieldInstruction> delayedUpdateRCS()
         {
-            yield return null;
-            part.Effects.Initialize();
-            part.Modules.GetModules<ModuleRCS>()
-                .ForEach(rcs =>
-                {
-                    rcs.OnStart(part.StartState());
-                    rcs.Log("thrust transforms: {}", rcs.thrusterTransforms); //debug
-                });
+            yield return new WaitForEndOfFrame();
+            part.Modules
+                .GetModules<ExtensibleRCS>()
+                .ForEach(rcs => rcs.UpdateThrusterTransforms());
         }
 
         private void updateCoMOffset()
