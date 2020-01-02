@@ -322,7 +322,7 @@ namespace CargoAccelerators
         private void abortLaunchInternal(string message = null)
         {
             Utils.Message("Launch sequence aborted.");
-            if(string.IsNullOrEmpty(message))
+            if(!string.IsNullOrEmpty(message))
                 Utils.Message(message);
             endLaunch();
         }
