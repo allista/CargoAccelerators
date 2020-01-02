@@ -137,6 +137,7 @@ namespace CargoAccelerators
                     false));
         }
 
+        #region State
         private void autoLoad() => setState(AcceleratorState.LOAD);
 
         private void setState(AcceleratorState state)
@@ -181,82 +182,176 @@ namespace CargoAccelerators
             }
         }
 
-        private Vessel payload;
-        private VesselRanges payloadRanges;
-        private Coroutine launchCoro;
-
-        private IEnumerator<YieldInstruction> launchPayload()
+        private void onStateChange(object value)
         {
-            yield return null;
-            var numberOfVessels = launchingDamper.VesselsInside.Count;
-            if(numberOfVessels != 1)
+            if(!Enum.TryParse<AcceleratorState>(StateChoice, out var state))
+                return;
+            State = state;
+            actuateState();
+        }
+        #endregion
+
+        #region Launch
+        private class LaunchParams
+        {
+            private readonly Vessel host;
+            public Vessel payload;
+            public string payloadTitle;
+            private VesselRanges payloadRanges;
+
+            public ManeuverNode node;
+            public Vector3d nodeDeltaV;
+            public double nodeDeltaVm;
+            public double launchUT;
+            public double duration;
+            public double energy;
+            public double acceleration;
+            public double maxAccelerationTime;
+            public double maxDeltaV;
+
+            public bool Valid =>
+                payload != null
+                && node?.nextPatch != null;
+
+            public LaunchParams(Vessel vsl) => host = vsl;
+
+            public void SetPayloadUnpackDistance(float distance)
             {
-                abortLaunchInternal(numberOfVessels == 0
-                    ? "No payload in acceleration area."
-                    : "Multiple vessels in acceleration area.");
-                yield break;
+                payloadRanges = payload.SetUnpackDistance(distance);
             }
-            FlightGlobals.FindVessel(launchingDamper.VesselsInside.First(), out payload);
-            if(payload == null)
+
+            public void Cleanup()
             {
-                abortLaunchInternal("Unable to find payload.");
-                yield break;
+#if !DEBUG
+                if(node == null)
+                    return;
+                node.RemoveSelf();
+#endif
+                if(payloadRanges == null || payload == null)
+                    return;
+                payload.vesselRanges = payloadRanges;
             }
-            if(!preLaunchCheck())
+
+            public Vector3d GetManeuverVector() =>
+                (node.nextPatch.getOrbitalVelocityAtUT(node.UT)
+                 - payload.orbit.getOrbitalVelocityAtUT(node.UT)).xzy;
+
+            public bool AcquirePayload(uint vesselId)
             {
-                abortLaunchInternal();
-                yield break;
-            }
-            Utils.Message($"Launching: {Localizer.Format(payload.vesselName)}");
-            var hostV = vessel.orbit.vel;
-            var payloadV = payload.orbit.vel;
-            payloadRanges = payload.SetUnpackDistance(vesselRadius * 2);
-            loadingDamper.AutoEnable = false;
-            loadingDamper.EnableDamper(false);
-            launchingDamper.Fields.SetValue<float>(nameof(ATMagneticDamper.Attenuation), 0);
-            launchingDamper.EnableDamper(true);
-            while(true)
-            {
-                yield return null;
+                FlightGlobals.FindVessel(vesselId, out payload);
                 if(payload == null)
                 {
-                    abortLaunchInternal("Payload lost.");
-                    yield break;
+                    Utils.Message("Unable to find payload.");
+                    return false;
                 }
-                switch(launchingDamper.VesselsInside.Count)
+                payloadTitle = Localizer.Format(payload.vesselName);
+                if(payload.patchedConicSolver != null
+                   && payload.patchedConicSolver.maneuverNodes.Count > 0)
+                    node = payload.patchedConicSolver.maneuverNodes[0];
+                else if(payload.flightPlanNode.CountNodes > 0)
                 {
-                    case 0:
-                        this.Log("Accelerator abs dV: {}",
-                            (vessel.orbit.vel - hostV).magnitude); //debug
-                        this.Log("Payload dV: abs {}, rel {}",
-                            (payload.orbit.vel - payloadV).magnitude,
-                            (payload.orbit.vel - vessel.orbit.vel).magnitude); //debug
-                        endLaunch();
-                        Utils.Message("Launch succeeded.");
-                        yield break;
-                    case 1:
-                        var vesselId = launchingDamper.VesselsInside.First();
-                        if(payload.persistentId == vesselId)
-                            continue;
-                        abortLaunchInternal("Payload changed.");
-                        yield break;
-                    default:
-                        abortLaunchInternal("Multiple vessels in accelerator.");
-                        yield break;
+                    var payloadNode = new ManeuverNode();
+                    payloadNode.Load(payload.flightPlanNode.nodes[0]);
+                    node = host.patchedConicSolver.AddManeuverNode(payloadNode.UT);
+                    node.DeltaV = payloadNode.DeltaV;
+                    host.patchedConicSolver.UpdateFlightPlan();
                 }
+                else
+                {
+                    Utils.Message("Payload doesn't have a maneuver node.");
+                    return false;
+                }
+                nodeDeltaV = node.DeltaV;
+                nodeDeltaVm = node.DeltaV.magnitude;
+                return true;
+            }
+
+            public override string ToString()
+            {
+                return $@"launchParams for payload: {payload.GetID()}
+nodeDeltaV: {nodeDeltaV}, |{nodeDeltaVm}|
+acceleration: {acceleration}
+duration: {duration}
+energy: {energy}";
             }
         }
 
-        private bool preLaunchCheck()
+        private LaunchParams launchParams;
+        private Coroutine launchCoro;
+
+        private const double MAX_ANGULAR_VELOCITY_SQR = 0.000010132118; //0.02 deg/s
+        private const double MAX_RELATIVE_VELOCITY_SQR = 0.00025; //0.05 m/s
+        private const double MANEUVER_DELTA_V_TOL = 0.01;
+        private const int FINE_TUNE_FRAMES = 3;
+
+        private bool selfCheck()
         {
-            var maxAcceleration = maxLaunchAcceleration(payload);
-            launchingDamper.AttractorPower = launchingAttractorOrigPower;
-            if(maxAcceleration < launchingAttractorOrigPower)
-                launchingDamper.AttractorPower = (float)maxAcceleration;
-            var vslBounds = payload.Bounds();
+            if(vessel.isActiveVessel && !vessel.PatchedConicsAttached)
+            {
+                Utils.Message("Patched conics are not available. Upgrade Tracking Station.");
+                return false;
+            }
+            if(vessel.angularVelocity.sqrMagnitude > MAX_ANGULAR_VELOCITY_SQR)
+            {
+                Utils.Message("The accelerator is rotating. Stop the rotation and try again.");
+                return false;
+            }
+            return true;
+        }
+
+        private bool checkPayload()
+        {
+            if(launchParams.payload.angularVelocity.sqrMagnitude > MAX_ANGULAR_VELOCITY_SQR)
+            {
+                Utils.Message("Payload is rotating. Stop the rotation and try again.");
+                return false;
+            }
+            var relV2 = (launchParams.payload.orbit.vel - vessel.orbit.vel).sqrMagnitude;
+            if(relV2 > MAX_RELATIVE_VELOCITY_SQR)
+            {
+                Utils.Message("Payload is moving. Wait for it to stop and try again.");
+                return false;
+            }
+            return true;
+        }
+
+        private void clearManeuverNodes()
+        {
+            if(vessel.patchedConicSolver == null)
+                return;
+            var nodes = vessel.patchedConicSolver.maneuverNodes;
+            for(var i = nodes.Count - 1; i >= 0; i--)
+                nodes[i].RemoveSelf();
+        }
+
+        private bool acquirePayload()
+        {
+            var numberOfVessels = launchingDamper.VesselsInside.Count;
+            if(numberOfVessels != 1)
+            {
+                Utils.Message(numberOfVessels == 0
+                    ? "No payload in acceleration area."
+                    : "Multiple vessels in acceleration area.");
+                return false;
+            }
+            clearManeuverNodes();
+            launchParams = new LaunchParams(vessel);
+            if(!launchParams.AcquirePayload(launchingDamper.VesselsInside.First()))
+                return false;
+            if(!checkPayload())
+                return false;
+            if(!checkPayloadManeuver())
+                return false;
+            this.Log($"Payload acquired: {launchParams}"); //debug
+            return true;
+        }
+
+        private float calculateLaunchDistance()
+        {
+            var vslBounds = launchParams.payload.Bounds();
             var launchPath = Vector3.Project(vslBounds.min,
                 launchingDamper.attractorAxisW);
-            Transform endT = null;
+            Transform endT;
             if(barrelSegments.Count == 0)
                 endT = part.FindModelTransform(BarrelAttachmentTransform);
             else
@@ -270,18 +365,49 @@ namespace CargoAccelerators
             {
                 Utils.Message(
                     $"Unable to calculate launch path. No {BarrelAttachmentTransform} found.");
+                return -1;
+            }
+            return launchPath.magnitude;
+        }
+
+        private bool checkPayloadManeuver()
+        {
+            // limit maximum acceleration by GTolerance
+            launchParams.acceleration = maxLaunchAcceleration(launchParams.payload);
+            if(launchParams.acceleration > launchingAttractorOrigPower)
+                launchParams.acceleration = launchingAttractorOrigPower;
+            // calculate the force that the accelerator will apply
+            // and the energy required
+            var launchDistance = calculateLaunchDistance();
+            var hostMass = vessel.GetTotalMass();
+            var payloadMass = launchParams.payload.GetTotalMass();
+            var force = launchingDamper.GetForceForAcceleration(payloadMass,
+                (float)launchParams.acceleration,
+                out var energyCurrent);
+            launchParams.maxAccelerationTime =
+                Math.Sqrt(2 * launchDistance / force / (1 / hostMass + 1 / payloadMass));
+            // calculate acceleration and max dV projections
+            launchParams.acceleration = force / payloadMass;
+            launchParams.maxDeltaV = launchParams.acceleration * launchParams.maxAccelerationTime;
+            // compare projected max values to the required by the maneuver node
+            if(launchParams.nodeDeltaVm > launchParams.maxDeltaV)
+            {
+                var dVShortage = launchParams.nodeDeltaVm - launchParams.maxDeltaV;
+                Utils.Message(
+                    $"This accelerator is too short for the planned maneuver of the \"{launchParams.payloadTitle}\".\nMaximum possible dV is {dVShortage:F1} m/s less then required.");
                 return false;
             }
-            var vslMass = payload.GetTotalMass();
-            var maxForce = Math.Min(launchingDamper.MaxForce,
-                launchingDamper.AttractorPower * vslMass);
-            maxAcceleration = maxForce / vslMass;
-            var maxAccelerationTime = Math.Sqrt(2 * launchPath.magnitude / maxAcceleration);
-            Utils.Message(
-                $"Maximum acceleration: {maxAcceleration / Utils.G0:F1}g");
-            this.Log($"Maximum launch path: {launchPath.magnitude:F1} m");
-            this.Log($"Maximum launch time: {maxAccelerationTime:F1} s");
-            this.Log($"Maximum relative dV: {maxAccelerationTime * maxAcceleration:F1} m/s");
+            launchParams.duration = launchParams.nodeDeltaVm / launchParams.acceleration;
+            launchParams.launchUT = launchParams.node.UT + launchParams.duration / 2;
+            // check if there's enough energy
+            launchParams.energy = launchParams.duration * energyCurrent;
+            vessel.GetConnectedResourceTotals(Utils.ElectricCharge.id, out var amountEC, out _);
+            if(amountEC < launchParams.energy)
+            {
+                Utils.Message(
+                    $"Not enough energy for the maneuver. Additional {launchParams.energy - amountEC} EC is required.");
+                return false;
+            }
             return true;
         }
 
@@ -309,13 +435,104 @@ namespace CargoAccelerators
             return minAccelerationTolerance * Utils.G0 * 0.98;
         }
 
+        private bool preLaunchCheck()
+        {
+            var nodeBurnVector = launchParams.GetManeuverVector();
+            var attitudeError =
+                Utils.Angle2((Vector3)nodeBurnVector, launchingDamper.attractorAxisW);
+            this.Log($"Attitude error: {attitudeError}"); //debug
+            if(attitudeError > 0.05f)
+            {
+                Utils.Message("Accelerator is not aligned with the maneuver node");
+                return false;
+            }
+            return true;
+        }
+
+        private bool maneuverIsComplete()
+        {
+            var nodeBurnVector = launchParams.GetManeuverVector();
+            var remainingDeltaV = nodeBurnVector.magnitude;
+            var nodeDotAxis = Vector3d.Dot(nodeBurnVector, launchingDamper.attractorAxisW); //debug
+            var attitudeError =
+                Utils.Angle2((Vector3)nodeBurnVector, launchingDamper.attractorAxisW); //debug
+            this.Log(
+                $"Maneuver dV: {nodeBurnVector} |{remainingDeltaV}|, along axis {nodeDotAxis}, attitude error {attitudeError} deg"); //debug
+            if(nodeDotAxis < MANEUVER_DELTA_V_TOL)
+                return true;
+            if(nodeDotAxis / launchParams.acceleration
+               < TimeWarp.fixedDeltaTime * FINE_TUNE_FRAMES)
+            {
+                // dividing by 4 because the next physical frame the old AttractorPower is still in effect
+                launchingDamper.AttractorPower =
+                    (float)nodeDotAxis / TimeWarp.fixedDeltaTime / (FINE_TUNE_FRAMES + 1);
+                this.Log($"Decreasing acceleration to: {launchingDamper.AttractorPower}"); //debug
+            }
+            return false;
+        }
+
+        private IEnumerator<YieldInstruction> launchPayload()
+        {
+            yield return null;
+            if(!(selfCheck()
+                 && acquirePayload()
+                 && preLaunchCheck()))
+            {
+                abortLaunchInternal();
+                yield break;
+            }
+            var timeLeft = launchParams.launchUT - Planetarium.GetUniversalTime();
+            if(timeLeft > 0)
+                Utils.Message($"Waiting for the node: {timeLeft:F1} s");
+            if(timeLeft > 15)
+                TimeWarp.fetch.WarpTo(launchParams.launchUT - 10);
+            while(Planetarium.GetUniversalTime() < launchParams.launchUT)
+                yield return new WaitForFixedUpdate();
+            Utils.Message($"Launching: {launchParams.payloadTitle}");
+            launchParams.SetPayloadUnpackDistance(vesselRadius * 2);
+            loadingDamper.AutoEnable = false;
+            loadingDamper.EnableDamper(false);
+            launchingDamper.AttractorPower = (float)launchParams.acceleration;
+            launchingDamper.Fields.SetValue<float>(nameof(ATMagneticDamper.Attenuation), 0);
+            launchingDamper.EnableDamper(true);
+            this.Log(launchParams.ToString()); //debug
+            while(true)
+            {
+                yield return new WaitForFixedUpdate();
+                if(!launchParams.Valid)
+                {
+                    abortLaunchInternal("Payload lost.");
+                    yield break;
+                }
+                switch(launchingDamper.VesselsInside.Count)
+                {
+                    case 0:
+                        abortLaunchInternal("Payload left the accelerator.");
+                        yield break;
+                    case 1:
+                        var vesselId = launchingDamper.VesselsInside.First();
+                        if(launchParams.payload.persistentId == vesselId)
+                        {
+                            if(!maneuverIsComplete())
+                                continue;
+                            endLaunch();
+                            Utils.Message("Launch succeeded.");
+                            yield break;
+                        }
+                        abortLaunchInternal("Payload changed.");
+                        yield break;
+                    default:
+                        abortLaunchInternal("Multiple vessels in accelerator.");
+                        yield break;
+                }
+            }
+        }
+
         private void endLaunch()
         {
+            launchParams?.Cleanup();
+            launchParams = null;
             launchCoro = null;
-            if(payloadRanges != null && payload != null)
-                payload.vesselRanges = payloadRanges;
-            payloadRanges = null;
-            payload = null;
             setState(AcceleratorState.OFF);
         }
 
@@ -334,15 +551,9 @@ namespace CargoAccelerators
             StopCoroutine(launchCoro);
             abortLaunchInternal();
         }
+        #endregion
 
-        private void onStateChange(object value)
-        {
-            if(!Enum.TryParse<AcceleratorState>(StateChoice, out var state))
-                return;
-            State = state;
-            actuateState();
-        }
-
+        #region Segments
         private void onNumSegmentsChange(object value)
         {
             numSegments = (int)numSegments;
@@ -467,6 +678,7 @@ namespace CargoAccelerators
             this.Log($"vessel radius: {vesselRadius}");
 #endif
         }
+        #endregion
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit) =>
             barrelSegments.Count * SegmentMass;
