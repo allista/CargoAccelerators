@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using AT_Utils;
 using KSP.Localization;
 using UnityEngine;
@@ -694,9 +695,25 @@ energy: {energy}";
             part.CoMOffset = part.partTransform.InverseTransformDirection(CoM / part.mass);
         }
 
+        private static readonly FieldInfo partInertiaTensorFI = typeof(Part).GetField(
+            "inertiaTensor",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        private void updateInertiaTensor()
+        {
+            if(part.rb == null)
+                return;
+            part.rb.ResetInertiaTensor();
+            var inertiaTensor = part.rb.inertiaTensor / Mathf.Max(1f, part.rb.mass);
+            this.Log(
+                $"Orig IT {partInertiaTensorFI.GetValue(part)}, new IT {inertiaTensor}"); //debug
+            partInertiaTensorFI.SetValue(part, inertiaTensor);
+        }
+
         public void UpdateParams()
         {
             updateCoMOffset();
+            StartCoroutine(CallbackUtil.DelayedCallback(1, updateInertiaTensor));
             if(vessel != null)
             {
                 vesselRadius = vessel.Bounds().size.magnitude;
