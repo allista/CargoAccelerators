@@ -203,6 +203,7 @@ namespace CargoAccelerators
             public Vector3d nodeDeltaV;
             public double nodeDeltaVm;
             public double launchUT;
+            public double rawDuration;
             public double duration;
             public double energy;
             public double acceleration;
@@ -266,11 +267,41 @@ namespace CargoAccelerators
                 return true;
             }
 
+            public void calculateLaunchTiming()
+            {
+                // duration of the maneuver without acceleration tuning
+                rawDuration = nodeDeltaVm / acceleration;
+                var middleDeltaV = nodeDeltaVm / 2;
+                // duration of the maneuver with acceleration tuning
+                var fullAccelerationTime =
+                    (int)Math.Ceiling(Math.Max(nodeDeltaVm
+                                               / acceleration
+                                               / TimeWarp.fixedDeltaTime
+                                               - FINE_TUNE_FRAMES,
+                        0))
+                    * TimeWarp.fixedDeltaTime;
+                var dVrem = nodeDeltaVm - acceleration * fullAccelerationTime;
+                var middleDuration = dVrem < middleDeltaV ? rawDuration / 2 : fullAccelerationTime;
+                duration = fullAccelerationTime;
+                while(dVrem > MANEUVER_DELTA_V_TOL)
+                {
+                    var a = dVrem / TimeWarp.fixedDeltaTime / (FINE_TUNE_FRAMES + 1);
+                    dVrem -= a * TimeWarp.fixedDeltaTime;
+                    if(dVrem > middleDeltaV)
+                        middleDuration += TimeWarp.fixedDeltaTime;
+                    duration += TimeWarp.fixedDeltaTime;
+                }
+                // calculate launch start UT
+                launchUT = node.UT - middleDuration;
+                Utils.Log($"middle dV {middleDeltaV}, t {middleDuration}");//debug
+            }
+
             public override string ToString()
             {
                 return $@"launchParams for payload: {payload.GetID()}
 nodeDeltaV: {nodeDeltaV}, |{nodeDeltaVm}|
 acceleration: {acceleration}
+rawDuration: {rawDuration}
 duration: {duration}
 energy: {energy}";
             }
@@ -397,10 +428,17 @@ energy: {energy}";
                     $"This accelerator is too short for the planned maneuver of the \"{launchParams.payloadTitle}\".\nMaximum possible dV is {dVShortage:F1} m/s less then required.");
                 return false;
             }
-            launchParams.duration = launchParams.nodeDeltaVm / launchParams.acceleration;
-            launchParams.launchUT = launchParams.node.UT + launchParams.duration / 2;
+            // check if launch duration is within accelerator limits
+            launchParams.calculateLaunchTiming();
+            if(launchParams.duration > launchParams.maxAccelerationTime)
+            {
+                var timeShortage = launchParams.duration - launchParams.maxAccelerationTime;
+                Utils.Message(
+                    $"This accelerator is too short for the planned maneuver of the \"{launchParams.payloadTitle}\".\nMaximum possible acceleration time is {timeShortage:F1} s less then required.");
+                return false;
+            }
             // check if there's enough energy
-            launchParams.energy = launchParams.duration * energyCurrent;
+            launchParams.energy = launchParams.rawDuration * energyCurrent;
             vessel.GetConnectedResourceTotals(Utils.ElectricCharge.id, out var amountEC, out _);
             if(amountEC < launchParams.energy)
             {
