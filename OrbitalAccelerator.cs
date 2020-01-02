@@ -719,6 +719,7 @@ energy: {energy}";
                 vesselRadius = vessel.Bounds().size.magnitude;
                 vessel.SetUnpackDistance(vesselRadius * 2);
             }
+            GameEvents.onVesselWasModified.Fire(vessel);
 #if DEBUG
             StartCoroutine(CallbackUtil.DelayedCallback(1,
                 () =>
