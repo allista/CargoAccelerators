@@ -454,13 +454,17 @@ namespace CargoAccelerators
                 vessel.SetUnpackDistance(vesselRadius * 2);
             }
 #if DEBUG
-            if(vessel != null)
-                VesselMass = vessel.GetTotalMass();
-            else if(HighLogic.LoadedSceneIsEditor)
-                VesselMass = EditorLogic.fetch.ship.GetTotalMass();
+            StartCoroutine(CallbackUtil.DelayedCallback(1,
+                () =>
+                {
+                    if(vessel != null)
+                        VesselMass = vessel.GetTotalMass();
+                    else if(HighLogic.LoadedSceneIsEditor)
+                        VesselMass = EditorLogic.fetch.ship.GetTotalMass();
+                    this.Log($"vessel mass: {VesselMass}");
+                }));
             this.Log("CoM offset: {}", part.CoMOffset);
             this.Log($"vessel radius: {vesselRadius}");
-            this.Log($"vessel mass: {VesselMass}");
 #endif
         }
 
