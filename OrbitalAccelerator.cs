@@ -417,8 +417,8 @@ namespace CargoAccelerators
                     barrelSegments.RemoveAt(i);
                 }
             }
-            StartCoroutine(delayedUpdateRCS());
             UpdateParams();
+            StartCoroutine(delayedUpdateRCS());
             return true;
         }
 
