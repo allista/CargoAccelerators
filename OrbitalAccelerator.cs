@@ -224,11 +224,8 @@ namespace CargoAccelerators
 
             public void Cleanup()
             {
-#if !DEBUG
-                if(node == null)
-                    return;
-                node.RemoveSelf();
-#endif
+                if(node != null && node.solver == host.patchedConicSolver)
+                    node.RemoveSelf();
                 if(payloadRanges == null || payload == null)
                     return;
                 payload.vesselRanges = payloadRanges;
@@ -310,6 +307,7 @@ energy: {energy}";
 
         private LaunchParams launchParams;
         private Coroutine launchCoro;
+        private Orbit preLaunchOrbit;
 
         private const double MAX_ANGULAR_VELOCITY_SQR = 0.000010132118; //0.02 deg/s
         private const double MAX_RELATIVE_VELOCITY_SQR = 0.00025; //0.05 m/s
@@ -531,6 +529,7 @@ energy: {energy}";
             while(Planetarium.GetUniversalTime() < launchParams.launchUT)
                 yield return new WaitForFixedUpdate();
             Utils.Message($"Launching: {launchParams.payloadTitle}");
+            preLaunchOrbit = new Orbit(vessel.orbit);
             launchParams.SetPayloadUnpackDistance(vesselRadius * 2);
             loadingDamper.AutoEnable = false;
             loadingDamper.EnableDamper(false);
@@ -575,6 +574,22 @@ energy: {energy}";
             launchParams?.Cleanup();
             launchParams = null;
             launchCoro = null;
+            if(preLaunchOrbit != null)
+            {
+                var UT = Planetarium.GetUniversalTime();
+                var dV = preLaunchOrbit.getOrbitalVelocityAtUT(UT)
+                         - vessel.orbit.getOrbitalVelocityAtUT(UT);
+                dV = Utils.Orbital2NodeDeltaV(vessel.orbit, dV, UT);
+                if(!dV.IsZero())
+                {
+                    clearManeuverNodes();
+                    if(vessel.patchedConicSolver != null)
+                        Utils.AddNodeRaw(vessel, dV, UT);
+                    else
+                        Utils.AddNodeRawToFlightPlanNode(vessel, dV, UT);
+                }
+                preLaunchOrbit = null;
+            }
             setState(AcceleratorState.OFF);
         }
 
