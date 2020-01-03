@@ -350,7 +350,10 @@ energy: {energy}";
         private void clearManeuverNodes()
         {
             if(vessel.patchedConicSolver == null)
+            {
+                vessel.flightPlanNode.ClearData();
                 return;
+            }
             var nodes = vessel.patchedConicSolver.maneuverNodes;
             for(var i = nodes.Count - 1; i >= 0; i--)
                 nodes[i].RemoveSelf();
