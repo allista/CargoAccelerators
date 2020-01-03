@@ -291,7 +291,7 @@ namespace CargoAccelerators
                 }
                 // calculate launch start UT
                 launchUT = node.UT - middleDuration;
-                Utils.Log($"middle dV {middleDeltaV}, t {middleDuration}");//debug
+                Utils.Log($"middle dV {middleDeltaV}, t {middleDuration}"); //debug
             }
 
             public override string ToString()
