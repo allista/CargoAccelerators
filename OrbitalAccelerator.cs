@@ -607,9 +607,9 @@ energy: {energy}";
 
         private void abortLaunchInternal(string message = null)
         {
-            Utils.Message("Launch sequence aborted.");
             if(!string.IsNullOrEmpty(message))
                 Utils.Message(message);
+            Utils.Message("Launch sequence aborted.");
             endLaunch();
         }
 
