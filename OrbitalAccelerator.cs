@@ -509,6 +509,21 @@ energy: {energy}";
             return false;
         }
 
+        private IEnumerator<YieldInstruction> waitAndReCheck(int secondsBeforeLaunch)
+        {
+            var timeLeft = launchParams.launchUT - Planetarium.GetUniversalTime();
+            if(timeLeft > secondsBeforeLaunch + 10)
+            {
+                Utils.Message($"Waiting for the node: {timeLeft:F1} s");
+                var warpToTime = launchParams.launchUT - secondsBeforeLaunch;
+                TimeWarp.fetch.WarpTo(warpToTime);
+                while(Planetarium.GetUniversalTime() < warpToTime)
+                    yield return new WaitForFixedUpdate();
+                if(!preLaunchCheck())
+                    abortLaunchInternal("Pre-launch checks failed.");
+            }
+        }
+
         private IEnumerator<YieldInstruction> launchPayload()
         {
             yield return null;
@@ -519,13 +534,12 @@ energy: {energy}";
                 abortLaunchInternal();
                 yield break;
             }
-            var timeLeft = launchParams.launchUT - Planetarium.GetUniversalTime();
-            if(timeLeft > 0)
-                Utils.Message($"Waiting for the node: {timeLeft:F1} s");
-            if(timeLeft > 15)
-                TimeWarp.fetch.WarpTo(launchParams.launchUT - 10);
-            while(Planetarium.GetUniversalTime() < launchParams.launchUT)
-                yield return new WaitForFixedUpdate();
+            yield return StartCoroutine(waitAndReCheck(180));
+            if(State != AcceleratorState.FIRE)
+                yield break;
+            yield return StartCoroutine(waitAndReCheck(10));
+            if(State != AcceleratorState.FIRE)
+                yield break;
             Utils.Message($"Launching: {launchParams.payloadTitle}");
             preLaunchOrbit = new Orbit(vessel.orbit);
             launchParams.SetPayloadUnpackDistance(vesselRadius * 2);
