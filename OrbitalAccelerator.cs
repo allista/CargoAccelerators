@@ -139,7 +139,11 @@ namespace CargoAccelerators
         }
 
         #region State
-        private void autoLoad() => setState(AcceleratorState.LOAD);
+        private void autoLoad()
+        {
+            if(State == AcceleratorState.OFF)
+                setState(AcceleratorState.LOAD);
+        }
 
         private void setState(AcceleratorState state)
         {
