@@ -227,8 +227,6 @@ namespace CargoAccelerators
 
             public void Cleanup()
             {
-                if(node != null && node.solver == host.patchedConicSolver)
-                    node.RemoveSelf();
                 if(payloadRanges == null || payload == null)
                     return;
                 payload.vesselRanges = payloadRanges;
@@ -249,7 +247,10 @@ namespace CargoAccelerators
                 payloadTitle = Localizer.Format(payload.vesselName);
                 if(payload.patchedConicSolver != null
                    && payload.patchedConicSolver.maneuverNodes.Count > 0)
+                {
                     node = payload.patchedConicSolver.maneuverNodes[0];
+                    Utils.CopyNode(node, host);
+                }
                 else if(payload.flightPlanNode.CountNodes > 0)
                 {
                     var payloadNode = new ManeuverNode();
