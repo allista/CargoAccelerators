@@ -467,10 +467,10 @@ energy: {energy}";
             var nodeBurnVector = launchParams.GetManeuverVector();
             var attitudeError =
                 Utils.Angle2((Vector3)nodeBurnVector, launchingDamper.attractorAxisW);
-            this.Log($"Attitude error: {attitudeError}"); //debug
             if(attitudeError > 0.05f)
             {
-                Utils.Message("Accelerator is not aligned with the maneuver node");
+                Utils.Message(
+                    $"Accelerator is not aligned with the maneuver node.\nAttitude error is: {attitudeError:F3} deg");
                 return false;
             }
             if(launchParams.payload.angularVelocity.sqrMagnitude > MAX_ANGULAR_VELOCITY_SQR)
