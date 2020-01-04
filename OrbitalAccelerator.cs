@@ -161,7 +161,7 @@ namespace CargoAccelerators
         {
             if(State != AcceleratorState.FIRE && launchCoro != null)
             {
-                abortLaunch();
+                abortLaunch($"Accelerator state was changed to {State}");
                 return;
             }
             loadingDamper.AttractorEnabled = true;
@@ -531,7 +531,7 @@ energy: {energy}";
                  && acquirePayload()
                  && preLaunchCheck()))
             {
-                abortLaunchInternal();
+                abortLaunchInternal("Pre-launch checks failed.");
                 yield break;
             }
             yield return StartCoroutine(waitAndReCheck(180));
@@ -613,12 +613,12 @@ energy: {energy}";
             endLaunch();
         }
 
-        private void abortLaunch()
+        private void abortLaunch(string message = null)
         {
             if(launchCoro == null)
                 return;
             StopCoroutine(launchCoro);
-            abortLaunchInternal();
+            abortLaunchInternal(message);
         }
         #endregion
 
