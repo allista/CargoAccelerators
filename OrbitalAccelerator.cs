@@ -204,7 +204,7 @@ namespace CargoAccelerators
             public string payloadTitle;
             private VesselRanges payloadRanges;
 
-            public ManeuverNode node;
+            private ManeuverNode node;
             public double nodeDeltaVm;
             public double launchUT;
             public double rawDuration;
