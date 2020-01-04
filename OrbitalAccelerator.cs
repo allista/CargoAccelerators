@@ -334,22 +334,6 @@ energy: {energy}";
             return true;
         }
 
-        private bool checkPayload()
-        {
-            if(launchParams.payload.angularVelocity.sqrMagnitude > MAX_ANGULAR_VELOCITY_SQR)
-            {
-                Utils.Message("Payload is rotating. Stop the rotation and try again.");
-                return false;
-            }
-            var relV2 = (launchParams.payload.orbit.vel - vessel.orbit.vel).sqrMagnitude;
-            if(relV2 > MAX_RELATIVE_VELOCITY_SQR)
-            {
-                Utils.Message("Payload is moving. Wait for it to stop and try again.");
-                return false;
-            }
-            return true;
-        }
-
         private void clearManeuverNodes()
         {
             if(vessel.patchedConicSolver == null)
@@ -375,8 +359,6 @@ energy: {energy}";
             clearManeuverNodes();
             launchParams = new LaunchParams(vessel);
             if(!launchParams.AcquirePayload(launchingDamper.VesselsInside.First()))
-                return false;
-            if(!checkPayload())
                 return false;
             if(!checkPayloadManeuver())
                 return false;
@@ -489,6 +471,17 @@ energy: {energy}";
             if(attitudeError > 0.05f)
             {
                 Utils.Message("Accelerator is not aligned with the maneuver node");
+                return false;
+            }
+            if(launchParams.payload.angularVelocity.sqrMagnitude > MAX_ANGULAR_VELOCITY_SQR)
+            {
+                Utils.Message("Payload is rotating. Stop the rotation and try again.");
+                return false;
+            }
+            var relV2 = (launchParams.payload.orbit.vel - vessel.orbit.vel).sqrMagnitude;
+            if(relV2 > MAX_RELATIVE_VELOCITY_SQR)
+            {
+                Utils.Message("Payload is moving. Wait for it to stop and try again.");
                 return false;
             }
             return true;
