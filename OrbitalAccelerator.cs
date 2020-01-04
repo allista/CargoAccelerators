@@ -205,7 +205,6 @@ namespace CargoAccelerators
             private VesselRanges payloadRanges;
 
             public ManeuverNode node;
-            public Vector3d nodeDeltaV;
             public double nodeDeltaVm;
             public double launchUT;
             public double rawDuration;
@@ -264,7 +263,6 @@ namespace CargoAccelerators
                     Utils.Message("Payload doesn't have a maneuver node.");
                     return false;
                 }
-                nodeDeltaV = node.DeltaV;
                 nodeDeltaVm = node.DeltaV.magnitude;
                 return true;
             }
@@ -301,7 +299,7 @@ namespace CargoAccelerators
             public override string ToString()
             {
                 return $@"launchParams for payload: {payload.GetID()}
-nodeDeltaV: {nodeDeltaV}, |{nodeDeltaVm}|
+nodeDeltaV: {node.DeltaV}, |{nodeDeltaVm}|
 acceleration: {acceleration}
 rawDuration: {rawDuration}
 duration: {duration}
