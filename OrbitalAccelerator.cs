@@ -280,14 +280,16 @@ namespace CargoAccelerators
                                                - FINE_TUNE_FRAMES,
                         0))
                     * TimeWarp.fixedDeltaTime;
-                var dVrem = nodeDeltaVm - acceleration * fullAccelerationTime;
-                var middleDuration = dVrem < middleDeltaV ? rawDuration / 2 : fullAccelerationTime;
+                var remainingDeltaV = nodeDeltaVm - acceleration * fullAccelerationTime;
+                var middleDuration = remainingDeltaV < middleDeltaV
+                    ? rawDuration / 2
+                    : fullAccelerationTime;
                 duration = fullAccelerationTime;
-                while(dVrem > MANEUVER_DELTA_V_TOL)
+                while(remainingDeltaV > MANEUVER_DELTA_V_TOL)
                 {
-                    var a = dVrem / TimeWarp.fixedDeltaTime / (FINE_TUNE_FRAMES + 1);
-                    dVrem -= a * TimeWarp.fixedDeltaTime;
-                    if(dVrem > middleDeltaV)
+                    var a = remainingDeltaV / TimeWarp.fixedDeltaTime / (FINE_TUNE_FRAMES + 1);
+                    remainingDeltaV -= a * TimeWarp.fixedDeltaTime;
+                    if(remainingDeltaV > middleDeltaV)
                         middleDuration += TimeWarp.fixedDeltaTime;
                     duration += TimeWarp.fixedDeltaTime;
                 }
