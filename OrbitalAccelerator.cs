@@ -469,8 +469,12 @@ energy: {energy}";
                 Utils.Angle2((Vector3)nodeBurnVector, launchingDamper.attractorAxisW);
             if(attitudeError > 0.05f)
             {
+                var locRot = Quaternion.Inverse(vessel.ReferenceTransform.rotation); 
+                var rot =
+                    Quaternion.FromToRotation(locRot*launchingDamper.attractorAxisW, locRot*nodeBurnVector);
+                var rotError = rot.eulerAngles;
                 Utils.Message(
-                    $"Accelerator is not aligned with the maneuver node.\nAttitude error is: {attitudeError:F3} deg");
+                    $"Accelerator is not aligned with the maneuver node.\nAttitude error: total {attitudeError:F3}, pitch {Utils.CenterAngle(rotError.x):F3}, yaw {Utils.CenterAngle(rotError.z):F3}");
                 return false;
             }
             if(launchParams.payload.angularVelocity.sqrMagnitude > MAX_ANGULAR_VELOCITY_SQR)
