@@ -540,6 +540,8 @@ energy: {energy}";
             yield return StartCoroutine(waitAndReCheck(10));
             if(State != AcceleratorState.FIRE)
                 yield break;
+            while(Planetarium.GetUniversalTime() < launchParams.launchUT)
+                yield return new WaitForFixedUpdate();
             Utils.Message($"Launching: {launchParams.payloadTitle}");
             preLaunchOrbit = new Orbit(vessel.orbit);
             launchParams.SetPayloadUnpackDistance(vesselRadius * 2);
