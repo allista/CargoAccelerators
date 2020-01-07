@@ -28,6 +28,7 @@ namespace CargoAccelerators.UI
             Controller.title.text = accelerator.Title();
             Controller.messagePanelController.onLabelClicked.AddListener(ClearMessages);
             UpdatePayloadInfo();
+            UpdateState();
             updateMessage();
         }
 
@@ -70,6 +71,62 @@ namespace CargoAccelerators.UI
                 Controller.SetManeuverInfo((float)launchParams.nodeDeltaVm,
                     (float)launchParams.acceleration,
                     (float)launchParams.duration);
+            }
+        }
+
+        public void UpdateState()
+        {
+            if(Controller == null || accelerator == null)
+                return;
+            var hasPayload = launchParams != null && launchParams.Valid;
+            switch(accelerator.State)
+            {
+                case OrbitalAccelerator.AcceleratorState.IDLE:
+                    Controller.status.text = "Accelerator is idle";
+                    Controller.status.color = Colors.Neutral;
+                    Controller.acquirePayloadButton.SetInteractable(false);
+                    Controller.abortButton.SetInteractable(false);
+                    Controller.ejectPayloadButton.SetInteractable(false);
+                    Controller.launchButton.SetInteractable(false);
+                    break;
+                case OrbitalAccelerator.AcceleratorState.LOADED:
+                    Controller.status.text = hasPayload
+                        ? "Connection with the payload established"
+                        : "Payload is in the loading area";
+                    Controller.status.color = Colors.Warning;
+                    Controller.acquirePayloadButton.SetInteractable(true);
+                    Controller.abortButton.SetInteractable(false);
+                    Controller.ejectPayloadButton.SetInteractable(true);
+                    Controller.launchButton.SetInteractable(hasPayload);
+                    break;
+                case OrbitalAccelerator.AcceleratorState.ACQUIRE_PAYLOAD:
+                    Controller.status.text = "Establishing connection with the payload";
+                    Controller.status.color = Colors.Neutral;
+                    break;
+                case OrbitalAccelerator.AcceleratorState.EJECT:
+                    Controller.status.text = "Ejecting payload";
+                    Controller.status.color = Colors.Warning;
+                    Controller.acquirePayloadButton.SetInteractable(false);
+                    Controller.abortButton.SetInteractable(true);
+                    Controller.ejectPayloadButton.SetInteractable(false);
+                    Controller.launchButton.SetInteractable(false);
+                    break;
+                case OrbitalAccelerator.AcceleratorState.LAUNCH:
+                    Controller.status.text = "Launch in progress";
+                    Controller.status.color = Colors.Good;
+                    Controller.acquirePayloadButton.SetInteractable(false);
+                    Controller.abortButton.SetInteractable(true);
+                    Controller.ejectPayloadButton.SetInteractable(false);
+                    Controller.launchButton.SetInteractable(false);
+                    break;
+                case OrbitalAccelerator.AcceleratorState.ABORT:
+                    Controller.status.text = "Aborting";
+                    Controller.status.color = Colors.Danger;
+                    Controller.acquirePayloadButton.SetInteractable(false);
+                    Controller.abortButton.SetInteractable(false);
+                    Controller.ejectPayloadButton.SetInteractable(false);
+                    Controller.launchButton.SetInteractable(false);
+                    break;
             }
         }
 

@@ -3,15 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AT_Utils;
+using CargoAccelerators.UI;
 using KSP.Localization;
 using UnityEngine;
 
 namespace CargoAccelerators
 {
-    public enum AcceleratorState { OFF, LOAD, FIRE }
-
     public class OrbitalAccelerator : PartModule, IPartMassModifier, IPartCostModifier, ITargetable
     {
+        public enum AcceleratorState
+        {
+            IDLE,
+            LOADED,
+            ACQUIRE_PAYLOAD,
+            EJECT,
+            LAUNCH,
+            ABORT
+        }
+
         [KSPField] public string LoadingDamperID = "LoadingDamper";
         [KSPField] public string LaunchingDamperID = "LaunchingDamper";
 
@@ -32,15 +41,19 @@ namespace CargoAccelerators
         [UI_FloatRange(scene = UI_Scene.All, minValue = 0, maxValue = 20, stepIncrement = 1)]
         public float numSegments;
 
-        [KSPField(isPersistant = true)] public AcceleratorState State;
+        [KSPField(isPersistant = true)] public AcceleratorState State = AcceleratorState.IDLE;
+        [KSPField(isPersistant = true)] public bool AutoAlignEnabled;
 
-        [KSPField(guiActive = true,
+        [KSPField(isPersistant = true,
+            guiName = "Accelerator Controls",
+            guiActive = true,
             guiActiveEditor = true,
             guiActiveUnfocused = true,
-            unfocusedRange = 100,
-            guiName = "Accelerator State")]
-        [UI_ChooseOption]
-        public string StateChoice = string.Empty;
+            unfocusedRange = 50)]
+        [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Enabled", disabledText = "Disabled")]
+        public bool ShowUI;
+
+        private AcceleratorWindow UI;
 
 #if DEBUG
         [KSPField(guiActive = true,
@@ -115,91 +128,227 @@ namespace CargoAccelerators
                 numSegmentsControlEditor.maxValue = MaxSegments;
             if(numSegmentsField.uiControlFlight is UI_FloatRange numSegmentsControlFlight)
                 numSegmentsControlFlight.maxValue = MaxSegments;
-            var states = Enum.GetNames(typeof(AcceleratorState));
-            var stateField = Fields[nameof(StateChoice)];
-            Utils.SetupChooser(states, states, stateField);
-            stateField.OnValueModified += onStateChange;
-            loadingDamper.OnDamperAutoEnabled += autoLoad;
-            setState(State);
+            Fields[nameof(ShowUI)].OnValueModified += showUI;
+            UI = new AcceleratorWindow(this);
+            if(ShowUI)
+                UI.Show(this);
         }
 
         private void OnDestroy()
         {
-            Fields[nameof(numSegments)].OnValueModified -= onNumSegmentsChange;
-            Fields[nameof(StateChoice)].OnValueModified -= onStateChange;
-            if(loadingDamper != null)
-                loadingDamper.OnDamperAutoEnabled -= autoLoad;
-            if(FlightGlobals.fetch == null)
-                return;
-            if(ReferenceEquals(FlightGlobals.fetch.VesselTarget, this))
+            if(FlightGlobals.fetch != null
+               && ReferenceEquals(FlightGlobals.fetch.VesselTarget, this))
+            {
                 vessel.StartCoroutine(CallbackUtil.DelayedCallback(1,
                     FlightGlobals.fetch.SetVesselTarget,
                     vessel,
                     false));
+            }
+            Fields[nameof(numSegments)].OnValueModified -= onNumSegmentsChange;
+            Fields[nameof(ShowUI)].OnValueModified -= showUI;
+            UI?.Close();
         }
+
+        #region UI
+        private void showUI(object value)
+        {
+            if(ShowUI)
+                UI.Show(this);
+            else
+                UI.Close();
+        }
+
+        public void AcquirePayload()
+        {
+            if(State != AcceleratorState.LOADED)
+                return;
+            UI.ClearMessages();
+            changeState(AcceleratorState.ACQUIRE_PAYLOAD);
+        }
+
+        public void EjectPayload()
+        {
+            if(State != AcceleratorState.LOADED)
+                return;
+            UI.ClearMessages();
+            changeState(AcceleratorState.EJECT);
+        }
+
+        public void AbortOperations()
+        {
+            switch(State)
+            {
+                case AcceleratorState.EJECT:
+                    UI.ClearMessages();
+                    changeState(AcceleratorState.IDLE);
+                    break;
+                case AcceleratorState.LAUNCH:
+                    UI.ClearMessages();
+                    changeState(AcceleratorState.ABORT);
+                    break;
+            }
+        }
+
+        public void ToggleAutoAlign(bool enable)
+        {
+            AutoAlignEnabled = enable;
+        }
+
+        public void LaunchPayload()
+        {
+            if(State != AcceleratorState.LOADED
+               || launchParams == null
+               || !launchParams.Valid)
+                return;
+            UI.ClearMessages();
+            changeState(AcceleratorState.LAUNCH);
+        }
+        #endregion
 
         #region State
-        private void autoLoad()
+        private void changeState(AcceleratorState newState)
         {
-            if(State == AcceleratorState.OFF)
-                setState(AcceleratorState.LOAD);
+            State = newState;
+            UI.UpdateState();
         }
 
-        private void setState(AcceleratorState state)
+        private void Update()
         {
-            State = state;
-            var choice = Enum.GetName(typeof(AcceleratorState), State);
-            if(StateChoice != choice)
-            {
-                StateChoice = choice;
-                MonoUtilities.RefreshPartContextWindow(part);
-            }
-            actuateState();
-        }
-
-        private void actuateState()
-        {
-            if(State != AcceleratorState.FIRE && launchCoro != null)
-            {
-                abortLaunch($"Accelerator state was changed to {State}");
+            if(!HighLogic.LoadedSceneIsFlight || FlightDriver.Pause)
                 return;
-            }
+            loadingDamper.AutoEnable = true;
             loadingDamper.AttractorEnabled = true;
             loadingDamper.InvertAttractor = false;
             launchingDamper.AttractorEnabled = true;
             launchingDamper.InvertAttractor = true;
             switch(State)
             {
-                case AcceleratorState.OFF:
+                case AcceleratorState.IDLE:
+                    if(launchParams != null)
+                    {
+                        launchParams.Cleanup();
+                        launchParams = null;
+                        UI.UpdatePayloadInfo();
+                    }
+                    if(launchingDamper.DamperEnabled)
+                        launchingDamper.EnableDamper(false);
+                    if(loadingDamper.VesselsInside.Count > 0)
+                        changeState(AcceleratorState.LOADED);
+                    break;
+                case AcceleratorState.LOADED:
+                    if(loadingDamper.VesselsInside.Count == 0)
+                        changeState(AcceleratorState.IDLE);
+                    else if(launchParams == null)
+                        changeState(AcceleratorState.ACQUIRE_PAYLOAD);
+                    break;
+                case AcceleratorState.ACQUIRE_PAYLOAD:
+                    acquirePayload();
+                    UI.UpdatePayloadInfo();
+                    changeState(launchParams != null
+                        ? AcceleratorState.LOADED
+                        : AcceleratorState.IDLE);
+                    break;
+                case AcceleratorState.EJECT:
+                    if(loadingDamper.VesselsInside.Count == 0)
+                    {
+                        changeState(AcceleratorState.IDLE);
+                        break;
+                    }
+                    loadingDamper.InvertAttractor = true;
+                    break;
+                case AcceleratorState.LAUNCH:
                     loadingDamper.AutoEnable = true;
-                    loadingDamper.EnableDamper(false);
-                    launchingDamper.EnableDamper(false);
+                    if(launchCoro == null)
+                        launchCoro = StartCoroutine(launchPayload());
                     break;
-                case AcceleratorState.LOAD:
-                    loadingDamper.EnableDamper(true);
-                    launchingDamper.EnableDamper(false);
+                case AcceleratorState.ABORT:
+                    if(launchCoro != null)
+                    {
+                        abortLaunch();
+                        if(State != AcceleratorState.ABORT)
+                            break;
+                        if(!launchingDamper.DamperEnabled)
+                        {
+                            changeState(AcceleratorState.IDLE);
+                            break;
+                        }
+                        launchingDamper.AttractorPower = (float)launchParams.acceleration;
+                    }
+                    if(launchingDamper.VesselsInside.Count == 0)
+                        changeState(AcceleratorState.IDLE);
+                    launchingDamper.InvertAttractor = false;
                     break;
-                case AcceleratorState.FIRE:
-                    launchCoro = StartCoroutine(launchPayload());
-                    break;
-                default:
-                    goto case AcceleratorState.OFF;
             }
         }
 
-        private void onStateChange(object value)
+        private void FixedUpdate()
         {
-            if(!Enum.TryParse<AcceleratorState>(StateChoice, out var state))
+            if(!HighLogic.LoadedSceneIsFlight || FlightDriver.Pause)
                 return;
-            State = state;
-            actuateState();
+            switch(State)
+            {
+                case AcceleratorState.ABORT:
+                    var payloadRelV = (launchParams.payload.orbit.vel - vessel.orbit.vel).xzy;
+                    if(Vector3d.Dot(payloadRelV, launchingDamper.attractorAxisW) < 0.1)
+                    {
+                        launchingDamper.EnableDamper(false);
+                        changeState(AcceleratorState.IDLE);
+                    }
+                    break;
+            }
+        }
+
+        private void LateUpdate()
+        {
+            if(!HighLogic.LoadedSceneIsFlight || FlightDriver.Pause || !UI.IsShown)
+                return;
+            if(launchParams == null || !launchParams.Valid)
+                return;
+            var referenceTransformRotation = vessel.ReferenceTransform.rotation;
+            // calculate attitude error
+            //TODO: reimplement partial attitude error calculation
+            var nodeBurnVector = launchParams.GetManeuverVector();
+            var attitudeError =
+                Utils.Angle2((Vector3)nodeBurnVector, launchingDamper.attractorAxisW);
+            var locRot = Quaternion.Inverse(referenceTransformRotation);
+            var rot =
+                Quaternion.FromToRotation(locRot * launchingDamper.attractorAxisW,
+                    locRot * nodeBurnVector);
+            var rotError = rot.eulerAngles;
+            UI.Controller.UpdateAttitudeError(attitudeError,
+                Utils.CenterAngle(rotError.x),
+                Utils.CenterAngle(rotError.z),
+                attitudeError < MAX_ATTITUDE_ERROR);
+            // update countdown
+            UI.Controller.UpdateCountdown(launchParams.launchUT
+                                          - Planetarium.GetUniversalTime());
+            // update payload checks
+            if(TimeWarp.WarpMode == TimeWarp.Modes.HIGH && TimeWarp.CurrentRate > 1)
+                return;
+            var relV = (launchParams.payload.obt_velocity
+                        - vessel.obt_velocity).sqrMagnitude;
+            var payloadAV = launchParams.payload.angularVelocity.sqrMagnitude;
+            var dist = (launchParams.payload.CurrentCoM
+                        - loadingDamper.attractor.position).magnitude;
+            UI.Controller.UpdatePayloadInfo((float)Math.Sqrt(relV),
+                Mathf.Sqrt(payloadAV) * Mathf.Rad2Deg,
+                dist,
+                relV < MAX_RELATIVE_VELOCITY_SQR,
+                payloadAV < MAX_ANGULAR_VELOCITY_SQR,
+                dist < 0.1);
         }
         #endregion
 
         #region Launch
-        private class LaunchParams
+        public const double MAX_ATTITUDE_ERROR = 0.05; //deg
+        public const double MAX_ANGULAR_VELOCITY_SQR = 0.000010132118; //0.02 deg/s
+        public const double MAX_RELATIVE_VELOCITY_SQR = 0.0025; //0.05 m/s
+        public const double MANEUVER_DELTA_V_TOL = 0.01;
+        public const int FINE_TUNE_FRAMES = 3;
+
+        public class LaunchParams
         {
-            private readonly Vessel host;
+            private readonly OrbitalAccelerator accelerator;
             public Vessel payload;
             public string payloadTitle;
             private VesselRanges payloadRanges;
@@ -213,12 +362,14 @@ namespace CargoAccelerators
             public double acceleration;
             public double maxAccelerationTime;
             public double maxDeltaV;
+            public bool maneuverValid;
 
             public bool Valid =>
-                payload != null
+                maneuverValid
+                && payload != null
                 && node?.nextPatch != null;
 
-            public LaunchParams(Vessel vsl) => host = vsl;
+            public LaunchParams(OrbitalAccelerator accelerator) => this.accelerator = accelerator;
 
             public void SetPayloadUnpackDistance(float distance)
             {
@@ -241,27 +392,36 @@ namespace CargoAccelerators
                 FlightGlobals.FindVessel(vesselId, out payload);
                 if(payload == null)
                 {
-                    Utils.Message("Unable to find payload.");
+                    accelerator.UI.AddMessage("Unable to find payload.");
                     return false;
                 }
                 payloadTitle = Localizer.Format(payload.vesselName);
                 if(payload.patchedConicSolver != null
                    && payload.patchedConicSolver.maneuverNodes.Count > 0)
                 {
-                    node = payload.patchedConicSolver.maneuverNodes[0];
-                    Utils.CopyNode(node, host);
+                    var payloadNode = payload.patchedConicSolver.maneuverNodes[0];
+                    node = new ManeuverNode
+                    {
+                        UT = payloadNode.UT,
+                        DeltaV = payloadNode.DeltaV,
+                        patch = payload.orbit,
+                        nextPatch = new Orbit(payloadNode.nextPatch)
+                    };
+                    Utils.AddNodeRawToFlightPlanNode(accelerator.vessel, node.DeltaV, node.UT);
                 }
                 else if(payload.flightPlanNode.CountNodes > 0)
                 {
-                    var payloadNode = new ManeuverNode();
-                    payloadNode.Load(payload.flightPlanNode.nodes[0]);
-                    node = host.patchedConicSolver.AddManeuverNode(payloadNode.UT);
-                    node.DeltaV = payloadNode.DeltaV;
-                    host.patchedConicSolver.UpdateFlightPlan();
+                    node = new ManeuverNode();
+                    node.Load(payload.flightPlanNode.nodes[0]);
+                    var hostNode = accelerator.vessel.patchedConicSolver.AddManeuverNode(node.UT);
+                    hostNode.DeltaV = node.DeltaV;
+                    accelerator.vessel.patchedConicSolver.UpdateFlightPlan();
+                    node.patch = payload.orbit;
+                    node.nextPatch = hostNode.nextPatch;
                 }
                 else
                 {
-                    Utils.Message("Payload doesn't have a maneuver node.");
+                    accelerator.UI.AddMessage("Payload doesn't have a maneuver node.");
                     return false;
                 }
                 nodeDeltaVm = node.DeltaV.magnitude;
@@ -310,25 +470,20 @@ energy: {energy}";
             }
         }
 
-        private LaunchParams launchParams;
+        public LaunchParams launchParams { get; private set; }
         private Coroutine launchCoro;
         private Orbit preLaunchOrbit;
-
-        private const double MAX_ANGULAR_VELOCITY_SQR = 0.000010132118; //0.02 deg/s
-        private const double MAX_RELATIVE_VELOCITY_SQR = 0.00025; //0.05 m/s
-        private const double MANEUVER_DELTA_V_TOL = 0.01;
-        private const int FINE_TUNE_FRAMES = 3;
 
         private bool selfCheck()
         {
             if(vessel.isActiveVessel && !vessel.PatchedConicsAttached)
             {
-                Utils.Message("Patched conics are not available. Upgrade Tracking Station.");
+                UI.AddMessage("Patched conics are not available. Upgrade Tracking Station.");
                 return false;
             }
             if(vessel.angularVelocity.sqrMagnitude > MAX_ANGULAR_VELOCITY_SQR)
             {
-                Utils.Message("The accelerator is rotating. Stop the rotation and try again.");
+                UI.AddMessage("The accelerator is rotating. Stop the rotation and try again.");
                 return false;
             }
             return true;
@@ -348,16 +503,17 @@ energy: {energy}";
 
         private bool acquirePayload()
         {
+            UI.ClearMessages();
             var numberOfVessels = launchingDamper.VesselsInside.Count;
             if(numberOfVessels != 1)
             {
-                Utils.Message(numberOfVessels == 0
+                UI.AddMessage(numberOfVessels == 0
                     ? "No payload in acceleration area."
                     : "Multiple vessels in acceleration area.");
                 return false;
             }
             clearManeuverNodes();
-            launchParams = new LaunchParams(vessel);
+            launchParams = new LaunchParams(this);
             if(!launchParams.AcquirePayload(launchingDamper.VesselsInside.First()))
                 return false;
             if(!checkPayloadManeuver())
@@ -383,7 +539,7 @@ energy: {energy}";
                 launchPath -= endT.position;
             else
             {
-                Utils.Message(
+                UI.AddMessage(
                     $"Unable to calculate launch path. No {BarrelAttachmentTransform} found.");
                 return -1;
             }
@@ -413,7 +569,7 @@ energy: {energy}";
             if(launchParams.nodeDeltaVm > launchParams.maxDeltaV)
             {
                 var dVShortage = launchParams.nodeDeltaVm - launchParams.maxDeltaV;
-                Utils.Message(
+                UI.AddMessage(
                     $"This accelerator is too short for the planned maneuver of the \"{launchParams.payloadTitle}\".\nMaximum possible dV is {dVShortage:F1} m/s less then required.");
                 return false;
             }
@@ -422,7 +578,7 @@ energy: {energy}";
             if(launchParams.duration > launchParams.maxAccelerationTime)
             {
                 var timeShortage = launchParams.duration - launchParams.maxAccelerationTime;
-                Utils.Message(
+                UI.AddMessage(
                     $"This accelerator is too short for the planned maneuver of the \"{launchParams.payloadTitle}\".\nMaximum possible acceleration time is {timeShortage:F1} s less then required.");
                 return false;
             }
@@ -431,10 +587,11 @@ energy: {energy}";
             vessel.GetConnectedResourceTotals(Utils.ElectricCharge.id, out var amountEC, out _);
             if(amountEC < launchParams.energy)
             {
-                Utils.Message(
+                UI.AddMessage(
                     $"Not enough energy for the maneuver. Additional {launchParams.energy - amountEC} EC is required.");
                 return false;
             }
+            launchParams.maneuverValid = true;
             return true;
         }
 
@@ -464,28 +621,31 @@ energy: {energy}";
 
         private bool preLaunchCheck()
         {
+            UI.ClearMessages();
+            if(!launchParams.Valid)
+            {
+                UI.AddMessage("Payload lost.");
+                return false;
+            }
             var nodeBurnVector = launchParams.GetManeuverVector();
             var attitudeError =
                 Utils.Angle2((Vector3)nodeBurnVector, launchingDamper.attractorAxisW);
-            if(attitudeError > 0.05f)
+            if(attitudeError > MAX_ATTITUDE_ERROR)
             {
-                var locRot = Quaternion.Inverse(vessel.ReferenceTransform.rotation); 
-                var rot =
-                    Quaternion.FromToRotation(locRot*launchingDamper.attractorAxisW, locRot*nodeBurnVector);
-                var rotError = rot.eulerAngles;
-                Utils.Message(
-                    $"Accelerator is not aligned with the maneuver node.\nAttitude error: total {attitudeError:F3}, pitch {Utils.CenterAngle(rotError.x):F3}, yaw {Utils.CenterAngle(rotError.z):F3}");
+                UI.AddMessage("Accelerator is not aligned with the maneuver node.");
                 return false;
             }
             if(launchParams.payload.angularVelocity.sqrMagnitude > MAX_ANGULAR_VELOCITY_SQR)
             {
-                Utils.Message("Payload is rotating. Stop the rotation and try again.");
+                UI.AddMessage("Payload is rotating. Stop the rotation and try again.");
+                this.Log("AV: {}", launchParams.payload.angularVelocity * Mathf.Rad2Deg); //debug
                 return false;
             }
-            var relV2 = (launchParams.payload.orbit.vel - vessel.orbit.vel).sqrMagnitude;
-            if(relV2 > MAX_RELATIVE_VELOCITY_SQR)
+            var relVel = launchParams.payload.obt_velocity - vessel.obt_velocity;
+            if(relVel.sqrMagnitude > MAX_RELATIVE_VELOCITY_SQR)
             {
-                Utils.Message("Payload is moving. Wait for it to stop and try again.");
+                UI.AddMessage("Payload is moving. Wait for it to stop and try again.");
+                this.Log("relVel: {}", relVel); //debug
                 return false;
             }
             return true;
@@ -518,13 +678,16 @@ energy: {energy}";
             var timeLeft = launchParams.launchUT - Planetarium.GetUniversalTime();
             if(timeLeft > secondsBeforeLaunch + 10)
             {
-                Utils.Message($"Waiting for the node: {timeLeft:F1} s");
                 var warpToTime = launchParams.launchUT - secondsBeforeLaunch;
                 TimeWarp.fetch.WarpTo(warpToTime);
                 while(Planetarium.GetUniversalTime() < warpToTime)
                     yield return new WaitForFixedUpdate();
+                while(launchParams.payload != null && launchParams.payload.packed)
+                    yield return new WaitForFixedUpdate();
+                yield return null;
                 if(!preLaunchCheck())
-                    abortLaunchInternal("Pre-launch checks failed.");
+                    abortLaunchInternal("Pre-launch checks failed.",
+                        AcceleratorState.LOADED);
             }
         }
 
@@ -532,24 +695,21 @@ energy: {energy}";
         {
             yield return null;
             if(!(selfCheck()
-                 && acquirePayload()
                  && preLaunchCheck()))
             {
-                abortLaunchInternal("Pre-launch checks failed.");
+                abortLaunchInternal("Pre-launch checks failed.", AcceleratorState.LOADED);
                 yield break;
             }
             yield return StartCoroutine(waitAndReCheck(180));
-            if(State != AcceleratorState.FIRE)
+            if(State != AcceleratorState.LAUNCH)
                 yield break;
-            yield return StartCoroutine(waitAndReCheck(10));
-            if(State != AcceleratorState.FIRE)
+            yield return StartCoroutine(waitAndReCheck(30));
+            if(State != AcceleratorState.LAUNCH)
                 yield break;
             while(Planetarium.GetUniversalTime() < launchParams.launchUT)
                 yield return new WaitForFixedUpdate();
-            Utils.Message($"Launching: {launchParams.payloadTitle}");
             preLaunchOrbit = new Orbit(vessel.orbit);
             launchParams.SetPayloadUnpackDistance(vesselRadius * 2);
-            loadingDamper.AutoEnable = false;
             loadingDamper.EnableDamper(false);
             launchingDamper.AttractorPower = (float)launchParams.acceleration;
             launchingDamper.Fields.SetValue<float>(nameof(ATMagneticDamper.Attenuation), 0);
@@ -575,22 +735,22 @@ energy: {energy}";
                             if(!maneuverIsComplete())
                                 continue;
                             endLaunch();
-                            Utils.Message("Launch succeeded.");
+                            UI.AddMessage("Launch succeeded.");
                             yield break;
                         }
-                        abortLaunchInternal("Payload changed.");
+                        abortLaunchInternal("Payload changed.",
+                            AcceleratorState.ABORT);
                         yield break;
                     default:
-                        abortLaunchInternal("Multiple vessels in accelerator.");
+                        abortLaunchInternal("Multiple vessels in accelerator.",
+                            AcceleratorState.ABORT);
                         yield break;
                 }
             }
         }
 
-        private void endLaunch()
+        private void endLaunch(AcceleratorState nextState = AcceleratorState.IDLE)
         {
-            launchParams?.Cleanup();
-            launchParams = null;
             launchCoro = null;
             if(preLaunchOrbit != null)
             {
@@ -608,23 +768,27 @@ energy: {energy}";
                 }
                 preLaunchOrbit = null;
             }
-            setState(AcceleratorState.OFF);
+            changeState(nextState);
         }
 
-        private void abortLaunchInternal(string message = null)
+        private void abortLaunchInternal(
+            string message = null,
+            AcceleratorState nextState = AcceleratorState.IDLE
+        )
         {
             if(!string.IsNullOrEmpty(message))
-                Utils.Message(message);
-            Utils.Message("Launch sequence aborted.");
-            endLaunch();
+                UI.AddMessage(message);
+            UI.AddMessage("Launch sequence aborted.");
+            endLaunch(nextState);
         }
 
-        private void abortLaunch(string message = null)
+        private void abortLaunch(
+            string message = null,
+            AcceleratorState nextState = AcceleratorState.ABORT
+        )
         {
-            if(launchCoro == null)
-                return;
             StopCoroutine(launchCoro);
-            abortLaunchInternal(message);
+            abortLaunchInternal(message, nextState);
         }
         #endregion
 
