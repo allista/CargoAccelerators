@@ -456,7 +456,6 @@ namespace CargoAccelerators
                 }
                 // calculate launch start UT
                 launchUT = node.UT - middleDuration;
-                Utils.Log($"middle dV {middleDeltaV}, t {middleDuration}"); //debug
             }
 
             public override string ToString()
@@ -518,7 +517,6 @@ energy: {energy}";
                 return false;
             if(!checkPayloadManeuver())
                 return false;
-            this.Log($"Payload acquired: {launchParams}"); //debug
             return true;
         }
 
@@ -638,14 +636,12 @@ energy: {energy}";
             if(launchParams.payload.angularVelocity.sqrMagnitude > MAX_ANGULAR_VELOCITY_SQR)
             {
                 UI.AddMessage("Payload is rotating. Stop the rotation and try again.");
-                this.Log("AV: {}", launchParams.payload.angularVelocity * Mathf.Rad2Deg); //debug
                 return false;
             }
             var relVel = launchParams.payload.obt_velocity - vessel.obt_velocity;
             if(relVel.sqrMagnitude > MAX_RELATIVE_VELOCITY_SQR)
             {
                 UI.AddMessage("Payload is moving. Wait for it to stop and try again.");
-                this.Log("relVel: {}", relVel); //debug
                 return false;
             }
             return true;
@@ -654,21 +650,14 @@ energy: {energy}";
         private bool maneuverIsComplete()
         {
             var nodeBurnVector = launchParams.GetManeuverVector();
-            var remainingDeltaV = nodeBurnVector.magnitude;
-            var nodeDotAxis = Vector3d.Dot(nodeBurnVector, launchingDamper.attractorAxisW); //debug
-            var attitudeError =
-                Utils.Angle2((Vector3)nodeBurnVector, launchingDamper.attractorAxisW); //debug
-            this.Log(
-                $"Maneuver dV: {nodeBurnVector} |{remainingDeltaV}|, along axis {nodeDotAxis}, attitude error {attitudeError} deg"); //debug
+            var nodeDotAxis = Vector3d.Dot(nodeBurnVector, launchingDamper.attractorAxisW);
             if(nodeDotAxis < MANEUVER_DELTA_V_TOL)
                 return true;
             if(nodeDotAxis / launchParams.acceleration
                < TimeWarp.fixedDeltaTime * FINE_TUNE_FRAMES)
             {
-                // dividing by 4 because the next physical frame the old AttractorPower is still in effect
                 launchingDamper.AttractorPower =
                     (float)nodeDotAxis / TimeWarp.fixedDeltaTime / (FINE_TUNE_FRAMES + 1);
-                this.Log($"Decreasing acceleration to: {launchingDamper.AttractorPower}"); //debug
             }
             return false;
         }
@@ -905,8 +894,6 @@ energy: {energy}";
                 return;
             part.rb.ResetInertiaTensor();
             var inertiaTensor = part.rb.inertiaTensor / Mathf.Max(1f, part.rb.mass);
-            this.Log(
-                $"Orig IT {partInertiaTensorFI.GetValue(part)}, new IT {inertiaTensor}"); //debug
             partInertiaTensorFI.SetValue(part, inertiaTensor);
         }
 
