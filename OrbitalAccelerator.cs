@@ -67,7 +67,7 @@ namespace CargoAccelerators
         public ATMagneticDamper loadingDamper;
         public ExtensibleMagneticDamper launchingDamper;
         public GameObject barrelSegmentPrefab;
-        private float vesselRadius;
+        private float vesselSize;
         private float launchingAttractorOrigPower;
 
         private struct BarrelSegment
@@ -709,7 +709,7 @@ energy: {energy}";
             while(Planetarium.GetUniversalTime() < launchParams.launchUT)
                 yield return new WaitForFixedUpdate();
             preLaunchOrbit = new Orbit(vessel.orbit);
-            launchParams.SetPayloadUnpackDistance(vesselRadius * 2);
+            launchParams.SetPayloadUnpackDistance(vesselSize * 2);
             loadingDamper.EnableDamper(false);
             launchingDamper.AttractorPower = (float)launchParams.acceleration;
             launchingDamper.Fields.SetValue<float>(nameof(ATMagneticDamper.Attenuation), 0);
@@ -916,8 +916,8 @@ energy: {energy}";
             StartCoroutine(CallbackUtil.DelayedCallback(1, updateInertiaTensor));
             if(vessel != null)
             {
-                vesselRadius = vessel.Bounds().size.magnitude;
-                vessel.SetUnpackDistance(vesselRadius * 2);
+                vesselSize = vessel.Bounds().size.magnitude;
+                vessel.SetUnpackDistance(vesselSize * 2);
             }
             GameEvents.onVesselWasModified.Fire(vessel);
 #if DEBUG
@@ -931,7 +931,7 @@ energy: {energy}";
                     this.Log($"vessel mass: {VesselMass}");
                 }));
             this.Log("CoM offset: {}", part.CoMOffset);
-            this.Log($"vessel radius: {vesselRadius}");
+            this.Log($"vessel size: {vesselSize}");
 #endif
         }
         #endregion
