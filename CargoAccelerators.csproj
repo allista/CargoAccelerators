@@ -82,6 +82,7 @@
         <Compile Include="Globals.cs" />
         <Compile Include="OrbitalAccelerator.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="UI\AcceleratorWindow.cs" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AT_Utils\AnisotropicPartResizer\AnisotropicPartResizer.csproj">
