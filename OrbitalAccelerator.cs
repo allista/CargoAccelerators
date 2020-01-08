@@ -335,7 +335,7 @@ namespace CargoAccelerators
                 dist,
                 relV < MAX_RELATIVE_VELOCITY_SQR,
                 payloadAV < MAX_ANGULAR_VELOCITY_SQR,
-                dist < 0.1);
+                dist < MAX_DISPLACEMENT);
         }
         #endregion
 
@@ -343,6 +343,7 @@ namespace CargoAccelerators
         public const double MAX_ATTITUDE_ERROR = 0.05; //deg
         public const double MAX_ANGULAR_VELOCITY_SQR = 0.000010132118; //0.02 deg/s
         public const double MAX_RELATIVE_VELOCITY_SQR = 0.0025; //0.05 m/s
+        public const double MAX_DISPLACEMENT = 0.1; //m
         public const double MANEUVER_DELTA_V_TOL = 0.01;
         public const int FINE_TUNE_FRAMES = 3;
 
@@ -640,6 +641,14 @@ energy: {energy}";
             if(relVel.sqrMagnitude > MAX_RELATIVE_VELOCITY_SQR)
             {
                 UI.AddMessage("Payload is moving. Wait for it to stop and try again.");
+                return false;
+            }
+            if((launchParams.payload.CurrentCoM
+                - loadingDamper.attractor.position).magnitude
+               > MAX_DISPLACEMENT)
+            {
+                UI.AddMessage(
+                    "Payload is not at the launch position yet. Wait for it to settle and try again.");
                 return false;
             }
             return true;
