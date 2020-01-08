@@ -323,7 +323,7 @@ namespace CargoAccelerators
             UI.Controller.UpdateCountdown(launchParams.launchUT
                                           - Planetarium.GetUniversalTime());
             // update payload checks
-            if(TimeWarp.WarpMode == TimeWarp.Modes.HIGH && TimeWarp.CurrentRate > 1)
+            if(part.packed)
                 return;
             var relV = (launchParams.payload.obt_velocity
                         - vessel.obt_velocity).sqrMagnitude;
