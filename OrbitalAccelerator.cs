@@ -306,18 +306,20 @@ namespace CargoAccelerators
                 return;
             var referenceTransformRotation = vessel.ReferenceTransform.rotation;
             // calculate attitude error
-            //TODO: reimplement partial attitude error calculation
             var nodeBurnVector = launchParams.GetManeuverVector();
-            var attitudeError =
-                Utils.Angle2((Vector3)nodeBurnVector, launchingDamper.attractorAxisW);
+            var axis = launchingDamper.attractorAxisW;
+            var attitudeError = Utils.Angle2((Vector3)nodeBurnVector, axis);
             var locRot = Quaternion.Inverse(referenceTransformRotation);
-            var rot =
-                Quaternion.FromToRotation(locRot * launchingDamper.attractorAxisW,
-                    locRot * nodeBurnVector);
-            var rotError = rot.eulerAngles;
+            var rot = Utils.FromToRotation(locRot * axis, locRot * nodeBurnVector);
+            var pitch = Math.Atan2(2 * (rot.w * rot.x + rot.z * rot.y),
+                            2 * (rot.w * rot.w + rot.z * rot.z) - 1)
+                        * Mathf.Rad2Deg;
+            var yaw = Math.Atan2(2 * (rot.w * rot.z + rot.x * rot.y),
+                          1 - 2 * (rot.y * rot.y + rot.z * rot.z))
+                      * Mathf.Rad2Deg;
             UI.Controller.UpdateAttitudeError(attitudeError,
-                Utils.CenterAngle(rotError.x),
-                Utils.CenterAngle(rotError.z),
+                Utils.CenterAngle((float)pitch),
+                Utils.CenterAngle((float)yaw),
                 attitudeError < MAX_ATTITUDE_ERROR);
             // update countdown
             UI.Controller.UpdateCountdown(launchParams.launchUT
