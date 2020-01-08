@@ -80,17 +80,17 @@ namespace CA.UI
             float maneuverEnergy
         )
         {
-            deltaV.text = $"dV {maneuverDeltaV:F2} m/s";
-            acceleration.text = $"{maxAcceleration / FormatUtils.G0:F2} g";
-            duration.text = $"{maneuverDuration:F3} s";
+            deltaV.text = $"dV {FormatUtils.formatBigValue(maneuverDeltaV, "m/s", "F2")}";
+            acceleration.text = $"{maxAcceleration / FormatUtils.G0:F2}g";
+            duration.text = $"{maneuverDuration:F3}s";
             energy.text = FormatUtils.formatBigValue(maneuverEnergy, "EC");
         }
 
         public void UpdateAttitudeError(float direct, float pitch, float yaw, bool aligned)
         {
-            attitudeError.text = $"{direct:F3} °";
-            pitchError.text = $"{pitch:F3} °";
-            yawError.text = $"{yaw:F3} °";
+            attitudeError.text = $"{direct:F3}°";
+            pitchError.text = $"{pitch:F3}°";
+            yawError.text = $"{yaw:F3}°";
             attitudeError.color = aligned ? Colors.Good : Colors.Neutral;
         }
 
@@ -103,9 +103,9 @@ namespace CA.UI
             bool dist_ok
         )
         {
-            relVelocity.text = $"{relV:F3} m/s";
-            angularVelocity.text = $"{relAV:F3} deg/s";
-            displacement.text = $"{dist:F3} m";
+            relVelocity.text = $"{relV:F3}m/s";
+            angularVelocity.text = $"{relAV:F3}°/s";
+            displacement.text = $"{dist:F3}m";
             relVelocity.color = relV_ok ? Colors.Good : Colors.Neutral;
             angularVelocity.color = relAV_ok ? Colors.Good : Colors.Neutral;
             displacement.color = dist_ok ? Colors.Good : Colors.Neutral;
