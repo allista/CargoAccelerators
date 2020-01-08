@@ -70,7 +70,8 @@ namespace CargoAccelerators.UI
                 Controller.payloadName.text = launchParams.payloadTitle;
                 Controller.SetManeuverInfo((float)launchParams.nodeDeltaVm,
                     (float)launchParams.acceleration,
-                    (float)launchParams.duration);
+                    (float)launchParams.duration,
+                    (float)launchParams.energy);
             }
         }
 

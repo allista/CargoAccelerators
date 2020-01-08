@@ -20,6 +20,7 @@ namespace CA.UI
             deltaV,
             acceleration,
             duration,
+            energy,
             attitudeError,
             pitchError,
             yawError,
@@ -50,6 +51,7 @@ namespace CA.UI
             deltaV.text = "";
             acceleration.text = "";
             duration.text = "";
+            energy.text = "";
             attitudeError.text = "";
             pitchError.text = "";
             yawError.text = "";
@@ -74,12 +76,14 @@ namespace CA.UI
         public void SetManeuverInfo(
             float maneuverDeltaV,
             float maxAcceleration,
-            float maneuverDuration
+            float maneuverDuration,
+            float maneuverEnergy
         )
         {
             deltaV.text = $"dV {maneuverDeltaV:F2} m/s";
             acceleration.text = $"{maxAcceleration / FormatUtils.G0:F2} g";
             duration.text = $"{maneuverDuration:F3} s";
+            energy.text = FormatUtils.formatBigValue(maneuverEnergy, "EC");
         }
 
         public void UpdateAttitudeError(float direct, float pitch, float yaw, bool aligned)
