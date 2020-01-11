@@ -5,3 +5,32 @@ MAX_RELATIVE_VELOCITY_SQR = 0.0025
 MAX_DISPLACEMENT = 0.1
 MANEUVER_DELTA_V_TOL = 0.01
 FINE_TUNE_FRAMES = 3
+
+PitchYawController
+{
+	avFilter = 2
+	odFilter = 1
+	angularErrorTolerance = 0.001
+	maxAngularVelocity = 1
+	maxAngularAcceleration = 0.2
+	avPID_D = 0.1
+	avPID_D_threshold = 0.1
+
+	avPID
+	{
+		P = 5
+		I = 1
+		D = 0
+		FF = 0
+	}
+}
+
+RollController
+{
+	Min = -1
+	Max = 1
+	P = 1
+	I = 0
+	D = 0
+	FF = 0
+}

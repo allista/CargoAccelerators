@@ -79,6 +79,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="AxisAttitudeController.cs" />
         <Compile Include="ExtensibleRCS.cs" />
         <Compile Include="ExtensibleMagneticDamper.cs" />
         <Compile Include="Globals.cs" />

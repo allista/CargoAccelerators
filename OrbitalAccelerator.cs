@@ -66,6 +66,7 @@ namespace CargoAccelerators
         public float VesselMass;
 #endif
 
+        private AxisAttitudeController axisController;
         public ATMagneticDamper loadingDamper;
         public ExtensibleMagneticDamper launchingDamper;
         public GameObject barrelSegmentPrefab;
@@ -86,6 +87,7 @@ namespace CargoAccelerators
             var T = part.FindModelTransform(SegmentTransform);
             if(T != null)
                 T.gameObject.SetActive(false);
+            GameEvents.onVesselWasModified.Add(onVesselWasModified);
         }
 
         public override void OnStart(StartState state)
@@ -131,6 +133,7 @@ namespace CargoAccelerators
             if(numSegmentsField.uiControlFlight is UI_FloatRange numSegmentsControlFlight)
                 numSegmentsControlFlight.maxValue = MaxSegments;
             Fields[nameof(ShowUI)].OnValueModified += showUI;
+            axisController = new AxisAttitudeController(this);
             UI = new AcceleratorWindow(this);
             if(ShowUI)
                 UI.Show(this);
@@ -149,7 +152,17 @@ namespace CargoAccelerators
             }
             Fields[nameof(numSegments)].OnValueModified -= onNumSegmentsChange;
             Fields[nameof(ShowUI)].OnValueModified -= showUI;
+            GameEvents.onVesselWasModified.Remove(onVesselWasModified);
+            axisController?.Disconnect();
+            axisController = null;
             UI?.Close();
+        }
+
+        private void onVesselWasModified(Vessel vsl)
+        {
+            if(axisController == null || vsl != vessel || vsl == null)
+                return;
+            axisController.UpdateTorqueProviders();
         }
 
         #region UI
@@ -308,22 +321,13 @@ namespace CargoAccelerators
             if(launchParams == null || !launchParams.Valid)
                 return;
             var referenceTransformRotation = vessel.ReferenceTransform.rotation;
-            // calculate attitude error
-            var nodeBurnVector = launchParams.GetManeuverVector();
-            var axis = launchingDamper.attractorAxisW;
-            var attitudeError = Utils.Angle2((Vector3)nodeBurnVector, axis);
-            var locRot = Quaternion.Inverse(referenceTransformRotation);
-            var rot = Utils.FromToRotation(locRot * axis, locRot * nodeBurnVector);
-            var pitch = Math.Atan2(2 * (rot.w * rot.x + rot.z * rot.y),
-                            2 * (rot.w * rot.w + rot.z * rot.z) - 1)
-                        * Mathf.Rad2Deg;
-            var yaw = Math.Atan2(2 * (rot.w * rot.z + rot.x * rot.y),
-                          1 - 2 * (rot.y * rot.y + rot.z * rot.z))
-                      * Mathf.Rad2Deg;
-            UI.Controller.UpdateAttitudeError(attitudeError,
-                Utils.CenterAngle((float)pitch),
-                Utils.CenterAngle((float)yaw),
-                attitudeError < MAX_ATTITUDE_ERROR);
+            // update attitude error
+            if(!AutoAlignEnabled || axisController.HasUserInput)
+                axisController.UpdateAttitudeError();
+            UI.Controller.UpdateAttitudeError(axisController.AttitudeError.x,
+                axisController.AttitudeError.y,
+                axisController.AttitudeError.z,
+                axisController.Aligned);
             // update countdown
             UI.Controller.UpdateCountdown(launchParams.launchUT
                                           - Planetarium.GetUniversalTime());
@@ -345,8 +349,6 @@ namespace CargoAccelerators
         #endregion
 
         #region Launch
-        public const double MAX_ATTITUDE_ERROR = 0.05; //deg
-
         public class LaunchParams
         {
             private readonly OrbitalAccelerator accelerator;

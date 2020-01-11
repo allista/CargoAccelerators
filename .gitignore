@@ -30,3 +30,5 @@ GameData/CargoAccelerators/Plugins/PluginData/CargoAccelerators/config.xml
 /CargoAccelerators.sln
 /CargoAccelerators.csproj.DotSettings
 /CA.UI/CA.UI.csproj.DotSettings
+.ipynb_checkpoints
+/notebooks/data
