@@ -208,6 +208,7 @@ namespace CargoAccelerators
         public void ToggleAutoAlign(bool enable)
         {
             AutoAlignEnabled = enable;
+            axisController.Reset();
         }
 
         public void LaunchPayload()

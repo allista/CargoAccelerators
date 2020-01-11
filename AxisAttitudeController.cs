@@ -106,6 +106,13 @@ namespace CargoAccelerators
             torqueProviders = vessel.FindPartModulesImplementing<ITorqueProvider>();
         }
 
+        public void Reset()
+        {
+            rollPID.Reset();
+            pitchController.Reset();
+            yawController.Reset();
+        }
+
         private Vector3 getTorque()
         {
             var torque = Vector6.zero;
@@ -216,6 +223,13 @@ namespace CargoAccelerators
         {
             base.Load(node);
             pid = PID.Clone<PIDf_Controller3>();
+        }
+
+        public void Reset()
+        {
+            OD.Reset();
+            avActionFilter.Reset();
+            pid.Reset();
         }
 
         public float Update(float angleError, float angularVelocity, float maxAA)
