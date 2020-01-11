@@ -410,6 +410,12 @@ namespace CargoAccelerators
                     return false;
                 }
                 payloadTitle = Localizer.Format(payload.vesselName);
+                return UpdatePayloadNode();
+            }
+
+            public bool UpdatePayloadNode()
+            {
+                maneuverValid = false;
                 if(payload.patchedConicSolver != null
                    && payload.patchedConicSolver.maneuverNodes.Count > 0)
                 {
@@ -421,7 +427,6 @@ namespace CargoAccelerators
                         patch = payload.orbit,
                         nextPatch = new Orbit(payloadNode.nextPatch)
                     };
-                    Utils.AddNodeRawToFlightPlanNode(accelerator.vessel, node.DeltaV, node.UT);
                 }
                 else if(payload.flightPlanNode.CountNodes > 0)
                 {
@@ -432,6 +437,7 @@ namespace CargoAccelerators
                     accelerator.vessel.patchedConicSolver.UpdateFlightPlan();
                     node.patch = payload.orbit;
                     node.nextPatch = hostNode.nextPatch;
+                    hostNode.RemoveSelf();
                 }
                 else
                 {
@@ -442,7 +448,7 @@ namespace CargoAccelerators
                 return true;
             }
 
-            public void calculateLaunchTiming()
+            public void CalculateLaunchTiming()
             {
                 // duration of the maneuver without acceleration tuning
                 rawDuration = nodeDeltaVm / acceleration;
@@ -584,7 +590,7 @@ energy: {energy}";
                 return false;
             }
             // check if launch duration is within accelerator limits
-            launchParams.calculateLaunchTiming();
+            launchParams.CalculateLaunchTiming();
             if(launchParams.duration > launchParams.maxAccelerationTime)
             {
                 var timeShortage = launchParams.duration - launchParams.maxAccelerationTime;
@@ -637,6 +643,8 @@ energy: {energy}";
                 UI.AddMessage("Payload lost.");
                 return false;
             }
+            if(!launchParams.UpdatePayloadNode() || !checkPayloadManeuver())
+                return false;
             var nodeBurnVector = launchParams.GetManeuverVector();
             var attitudeError =
                 Utils.Angle2((Vector3)nodeBurnVector, launchingDamper.attractorAxisW);
