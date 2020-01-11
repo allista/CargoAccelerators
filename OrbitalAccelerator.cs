@@ -136,7 +136,8 @@ namespace CargoAccelerators
 
         private void OnDestroy()
         {
-            if(FlightGlobals.fetch != null
+            if(vessel != null
+               && FlightGlobals.fetch != null
                && ReferenceEquals(FlightGlobals.fetch.VesselTarget, this))
             {
                 vessel.StartCoroutine(CallbackUtil.DelayedCallback(1,
