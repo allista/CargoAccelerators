@@ -15,8 +15,8 @@ namespace CargoAccelerators
         private ATMagneticDamper launchingDamper => host.launchingDamper;
         private bool connected;
 
-        private PIDf_Controller2 rollPID;
         private ConstAttitudeController pitchController, yawController;
+        private PIDf_Controller2 pitchPID, rollPID, yawPID;
 
         private List<ITorqueProvider> torqueProviders = new List<ITorqueProvider>();
 
@@ -39,7 +39,6 @@ namespace CargoAccelerators
             && !FlightDriver.Pause
             && host != null
             && host.AutoAlignEnabled
-            && launchParams != null
             && vessel != null;
 
         private Vector3 steering;
@@ -56,9 +55,11 @@ namespace CargoAccelerators
 
         public void InitPIDs()
         {
-            rollPID = GLB.RollController.Clone<PIDf_Controller2>();
             pitchController = GLB.PitchYawController.Clone<ConstAttitudeController>();
             yawController = GLB.PitchYawController.Clone<ConstAttitudeController>();
+            pitchPID = GLB.AvDampingController.Clone<PIDf_Controller2>();
+            rollPID = GLB.AvDampingController.Clone<PIDf_Controller2>();
+            yawPID = GLB.AvDampingController.Clone<PIDf_Controller2>();
             pitchController.name = "pitch"; //debug
             yawController.name = "yaw"; //debug
         }
@@ -108,7 +109,9 @@ namespace CargoAccelerators
 
         public void Reset()
         {
+            pitchPID.Reset();
             rollPID.Reset();
+            yawPID.Reset();
             pitchController.Reset();
             yawController.Reset();
         }
@@ -173,16 +176,26 @@ namespace CargoAccelerators
                            || !Mathfx.Approx(s.yaw, s.yawTrim, GLB.USER_INPUT_TOL);
             if(HasUserInput)
                 return;
-            UpdateAttitudeError();
             steering.Zero();
-            var torque = getTorque();
-            var maxAA = Utils.AngularAcceleration(torque, vessel.MOI) * Mathf.Rad2Deg;
             var AV = vessel.angularVelocity * Mathf.Rad2Deg;
-            // x is direct error, y is pitch; see AttitudeError description
+            if(launchParams != null && !launchParams.maneuverStarted)
+            {
+                UpdateAttitudeError();
+                var torque = getTorque();
+                var maxAA = Utils.AngularAcceleration(torque, vessel.MOI) * Mathf.Rad2Deg;
+                // x is direct error, y is pitch; see AttitudeError description
+                steering.x = pitchController.Update(AttitudeError.y, -AV.x, maxAA.x);
+                steering.z = yawController.Update(AttitudeError.z, -AV.z, maxAA.z);
+            }
+            else
+            {
+                pitchPID.Update(AV.x);
+                steering.x = pitchPID.Action;
+                yawPID.Update(AV.z);
+                steering.z = yawPID.Action;
+            }
             rollPID.Update(AV.y);
-            steering.x = pitchController.Update(AttitudeError.y, -AV.x, maxAA.x);
             steering.y = rollPID.Action;
-            steering.z = yawController.Update(AttitudeError.z, -AV.z, maxAA.z);
         }
 
         private void applySteering(FlightCtrlState s)

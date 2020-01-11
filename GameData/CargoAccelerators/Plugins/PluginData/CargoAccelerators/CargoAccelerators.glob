@@ -32,7 +32,7 @@ PitchYawController
 	}
 }
 
-RollController
+AvDampingController
 {
 	Min = -1
 	Max = 1

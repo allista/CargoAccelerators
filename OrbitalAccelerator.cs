@@ -376,6 +376,7 @@ namespace CargoAccelerators
             public double maxAccelerationTime;
             public double maxDeltaV;
             public bool maneuverValid;
+            public bool maneuverStarted;
 
             public bool Valid =>
                 maneuverValid
@@ -717,6 +718,7 @@ energy: {energy}";
             while(Planetarium.GetUniversalTime() < launchParams.launchUT)
                 yield return new WaitForFixedUpdate();
             preLaunchOrbit = new Orbit(vessel.orbit);
+            launchParams.maneuverStarted = true;
             launchParams.SetPayloadUnpackDistance(vesselSize * 2);
             loadingDamper.EnableDamper(false);
             launchingDamper.AttractorPower = (float)launchParams.acceleration;
