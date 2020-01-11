@@ -54,7 +54,8 @@
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\KSP-test\KSP_test_1.8.1\KSP_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.8.1\KSP_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>..\KSP-test\KSP_test_1.8.1\KSP_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
@@ -65,7 +66,8 @@
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\KSP-test\KSP_test_1.8.1\KSP_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.8.1\KSP_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>..\KSP-test\KSP_test_1.8.1\KSP_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
@@ -86,16 +88,19 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AT_Utils\AnisotropicPartResizer\AnisotropicPartResizer.csproj">
-          <Project>{19abdd5c-1f12-4d67-b72e-e36071abff2c}</Project>
-          <Name>AnisotropicPartResizer</Name>
+            <Project>{19abdd5c-1f12-4d67-b72e-e36071abff2c}</Project>
+            <Name>AnisotropicPartResizer</Name>
+            <Private>False</Private>
         </ProjectReference>
         <ProjectReference Include="..\AT_Utils\AT_Utils.csproj">
             <Project>{64cc36a2-0610-4f74-9f31-3d4e22866b7e}</Project>
             <Name>AT_Utils</Name>
+            <Private>False</Private>
         </ProjectReference>
         <ProjectReference Include="..\AT_Utils\Unity\AT_Utils.UI.csproj">
             <Project>{0b711e55-8312-144f-53ad-eda5a8cee04a}</Project>
             <Name>AT_Utils.UI</Name>
+            <Private>False</Private>
         </ProjectReference>
         <ProjectReference Include="CA.UI\CA.UI.csproj">
           <Project>{55e33136-32bd-4c5f-979d-d8ac9170e41e}</Project>
