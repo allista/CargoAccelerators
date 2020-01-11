@@ -11,6 +11,8 @@ namespace CargoAccelerators
 {
     public class OrbitalAccelerator : PartModule, IPartMassModifier, IPartCostModifier, ITargetable
     {
+        private static Globals GLB => Globals.Instance;
+
         public enum AcceleratorState
         {
             IDLE,
@@ -336,19 +338,14 @@ namespace CargoAccelerators
             UI.Controller.UpdatePayloadInfo((float)Math.Sqrt(relV),
                 Mathf.Sqrt(payloadAV) * Mathf.Rad2Deg,
                 dist,
-                relV < MAX_RELATIVE_VELOCITY_SQR,
-                payloadAV < MAX_ANGULAR_VELOCITY_SQR,
-                dist < MAX_DISPLACEMENT);
+                relV < GLB.MAX_RELATIVE_VELOCITY_SQR,
+                payloadAV < GLB.MAX_ANGULAR_VELOCITY_SQR,
+                dist < GLB.MAX_DISPLACEMENT);
         }
         #endregion
 
         #region Launch
         public const double MAX_ATTITUDE_ERROR = 0.05; //deg
-        public const double MAX_ANGULAR_VELOCITY_SQR = 0.000010132118; //0.02 deg/s
-        public const double MAX_RELATIVE_VELOCITY_SQR = 0.0025; //0.05 m/s
-        public const double MAX_DISPLACEMENT = 0.1; //m
-        public const double MANEUVER_DELTA_V_TOL = 0.01;
-        public const int FINE_TUNE_FRAMES = 3;
 
         public class LaunchParams
         {
@@ -442,7 +439,7 @@ namespace CargoAccelerators
                     (int)Math.Ceiling(Math.Max(nodeDeltaVm
                                                / acceleration
                                                / TimeWarp.fixedDeltaTime
-                                               - FINE_TUNE_FRAMES,
+                                               - GLB.FINE_TUNE_FRAMES,
                         0))
                     * TimeWarp.fixedDeltaTime;
                 var remainingDeltaV = nodeDeltaVm - acceleration * fullAccelerationTime;
@@ -450,9 +447,9 @@ namespace CargoAccelerators
                     ? rawDuration / 2
                     : fullAccelerationTime;
                 duration = fullAccelerationTime;
-                while(remainingDeltaV > MANEUVER_DELTA_V_TOL)
+                while(remainingDeltaV > GLB.MANEUVER_DELTA_V_TOL)
                 {
-                    var a = remainingDeltaV / TimeWarp.fixedDeltaTime / (FINE_TUNE_FRAMES + 1);
+                    var a = remainingDeltaV / TimeWarp.fixedDeltaTime / (GLB.FINE_TUNE_FRAMES + 1);
                     remainingDeltaV -= a * TimeWarp.fixedDeltaTime;
                     if(remainingDeltaV > middleDeltaV)
                         middleDuration += TimeWarp.fixedDeltaTime;
@@ -484,7 +481,7 @@ energy: {energy}";
                 UI.AddMessage("Patched conics are not available. Upgrade Tracking Station.");
                 return false;
             }
-            if(vessel.angularVelocity.sqrMagnitude > MAX_ANGULAR_VELOCITY_SQR)
+            if(vessel.angularVelocity.sqrMagnitude > GLB.MAX_ANGULAR_VELOCITY_SQR)
             {
                 UI.AddMessage("The accelerator is rotating. Stop the rotation and try again.");
                 return false;
@@ -630,25 +627,25 @@ energy: {energy}";
             var nodeBurnVector = launchParams.GetManeuverVector();
             var attitudeError =
                 Utils.Angle2((Vector3)nodeBurnVector, launchingDamper.attractorAxisW);
-            if(attitudeError > MAX_ATTITUDE_ERROR)
+            if(attitudeError > GLB.MAX_ATTITUDE_ERROR)
             {
                 UI.AddMessage("Accelerator is not aligned with the maneuver node.");
                 return false;
             }
-            if(launchParams.payload.angularVelocity.sqrMagnitude > MAX_ANGULAR_VELOCITY_SQR)
+            if(launchParams.payload.angularVelocity.sqrMagnitude > GLB.MAX_ANGULAR_VELOCITY_SQR)
             {
                 UI.AddMessage("Payload is rotating. Stop the rotation and try again.");
                 return false;
             }
             var relVel = launchParams.payload.obt_velocity - vessel.obt_velocity;
-            if(relVel.sqrMagnitude > MAX_RELATIVE_VELOCITY_SQR)
+            if(relVel.sqrMagnitude > GLB.MAX_RELATIVE_VELOCITY_SQR)
             {
                 UI.AddMessage("Payload is moving. Wait for it to stop and try again.");
                 return false;
             }
             if((launchParams.payload.CurrentCoM
                 - loadingDamper.attractor.position).magnitude
-               > MAX_DISPLACEMENT)
+               > GLB.MAX_DISPLACEMENT)
             {
                 UI.AddMessage(
                     "Payload is not at the launch position yet. Wait for it to settle and try again.");
@@ -661,13 +658,13 @@ energy: {energy}";
         {
             var nodeBurnVector = launchParams.GetManeuverVector();
             var nodeDotAxis = Vector3d.Dot(nodeBurnVector, launchingDamper.attractorAxisW);
-            if(nodeDotAxis < MANEUVER_DELTA_V_TOL)
+            if(nodeDotAxis < GLB.MANEUVER_DELTA_V_TOL)
                 return true;
             if(nodeDotAxis / launchParams.acceleration
-               < TimeWarp.fixedDeltaTime * FINE_TUNE_FRAMES)
+               < TimeWarp.fixedDeltaTime * GLB.FINE_TUNE_FRAMES)
             {
                 launchingDamper.AttractorPower =
-                    (float)nodeDotAxis / TimeWarp.fixedDeltaTime / (FINE_TUNE_FRAMES + 1);
+                    (float)nodeDotAxis / TimeWarp.fixedDeltaTime / (GLB.FINE_TUNE_FRAMES + 1);
             }
             return false;
         }
