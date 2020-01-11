@@ -219,6 +219,15 @@ namespace CargoAccelerators
             UI.ClearMessages();
             changeState(AcceleratorState.LAUNCH);
         }
+
+#if DEBUG
+        [KSPEvent(active = true, guiActive = true, guiName = "Reload CA Globals")]
+        public void ReloadGlobals()
+        {
+            Globals.Load();
+            axisController.InitPIDs();
+        }
+#endif
         #endregion
 
         #region State
