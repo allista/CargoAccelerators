@@ -110,14 +110,14 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-      <Content Include="CargoAccelerators.netkan" />
-      <Content Include="ChangeLog.md" />
-      <Content Include="GameData\CargoAccelerators\Parts\OrbitalAccelerator\OrbitalAccelerator.cfg" />
-      <Content Include="make-release.sh" />
-      <Content Include="README.md" />
+        <Content Include="CargoAccelerators.netkan" />
+        <Content Include="ChangeLog.md" />
+        <Content Include="GameData\CargoAccelerators\Parts\OrbitalAccelerator\OrbitalAccelerator.cfg" />
+        <Content Include="make-release.sh" />
+        <Content Include="README.md" />
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="GameData\CargoAccelerators\Plugins" />
+        <Folder Include="GameData\CargoAccelerators\Plugins" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

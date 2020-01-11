@@ -227,8 +227,8 @@ namespace CargoAccelerators
         [Persistent] private float maxAngularAcceleration = 0.1f; // deg/s2
 
         [Persistent] private PIDf_Controller3 PID = new PIDf_Controller3();
-        private PIDf_Controller3 pid;
 
+        private PIDf_Controller3 pid;
         private LowPassFilterF avActionFilter = new LowPassFilterF();
         private OscillationDetectorF OD = new OscillationDetectorF(0.5f, 3, 100, 500, 5);
 
