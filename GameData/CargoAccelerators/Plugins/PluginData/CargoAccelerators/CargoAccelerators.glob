@@ -8,17 +8,24 @@ FINE_TUNE_FRAMES = 3
 
 PitchYawController
 {
-	avFilter = 2
-	odFilter = 1
+	avFilter = 0
+	odFilter = 0
+	
+    accelerateThreshold = 0.5
+    decelerateThresholdLower = 0.9
+    decelerateThresholdUpper = 0.99
+    upperLowerActionThreshold = 0.01
+    angleErrorToActionP = 3
+
 	angularErrorTolerance = 0.001
 	maxAngularVelocity = 1
 	maxAngularAcceleration = 0.2
-	avPID_D = 0.1
-	avPID_D_threshold = 0.1
 
-	avPID
+	PID
 	{
-		P = 5
+	    Min = -1
+	    Max = 1
+		P = 1
 		I = 1
 		D = 0
 		FF = 0
@@ -30,7 +37,7 @@ RollController
 	Min = -1
 	Max = 1
 	P = 1
-	I = 0
+	I = 0.1
 	D = 0
 	FF = 0
 }

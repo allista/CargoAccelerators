@@ -195,54 +195,72 @@ namespace CargoAccelerators
         public string name = ""; //debug
         [Persistent] private float avFilter = 1f;
         [Persistent] private float odFilter = 1f;
+
+        [Persistent] private float accelerateThreshold = 0.5f;
+        [Persistent] private float decelerateThresholdLower = 0.9f;
+        [Persistent] private float decelerateThresholdUpper = 0.99f;
+        [Persistent] private float upperLowerActionThreshold = 0.01f;
+        [Persistent] private float angleErrorToActionP = 3f;
+
         [Persistent] private float angularErrorTolerance = 0.001f; //deg
         [Persistent] private float maxAngularVelocity = 1f; // deg/s
         [Persistent] private float maxAngularAcceleration = 0.1f; // deg/s2
-        [Persistent] private float avPID_D = 0.1f; // deg/s2
-        [Persistent] private float avPID_D_threshold = 0.1f; // deg/s2
 
-        [Persistent] private PIDf_Controller3 avPID = new PIDf_Controller3();
+        [Persistent] private PIDf_Controller3 PID = new PIDf_Controller3();
+        private PIDf_Controller3 pid;
 
         private LowPassFilterF avActionFilter = new LowPassFilterF();
         private OscillationDetectorF OD = new OscillationDetectorF(0.5f, 3, 100, 500, 5);
+
+        public override void Load(ConfigNode node)
+        {
+            base.Load(node);
+            pid = PID.Clone<PIDf_Controller3>();
+        }
 
         public float Update(float angleError, float angularVelocity, float maxAA)
         {
             var aaNorm = Utils.ClampH(maxAngularAcceleration / maxAA, 1);
             var aaCap = Mathf.Min(maxAngularAcceleration, maxAA);
-            var avError = angularVelocity;
-            var absAngleError = Mathf.Abs(angleError);
-            if(absAngleError > angularErrorTolerance)
-            {
-                // When angular velocity < 0 it decreases the angleError
-                var eta = angularVelocity.Equals(0) ? 1 : angleError / -angularVelocity;
-                var maxAV = eta >= 0
-                    ? eta * aaCap
-                    : maxAngularVelocity;
-                // The avError > 0 means that AV is greater than it should be.
-                avError += Utils.Clamp(angleError * maxAV,
-                    -maxAngularVelocity,
-                    maxAngularVelocity);
-            }
             var tau = avFilter * TimeWarp.fixedDeltaTime;
-            // avPID.Action is the required angular acceleration
-            // so the avError is re-normalized to AA scale
-            avPID.Min = -aaCap;
-            avPID.Max = aaCap;
-            avPID.D = absAngleError > avPID_D_threshold ? 0 : avPID_D;
-            avPID.setTau(tau);
-            avPID.Update(avError * aaCap / maxAngularVelocity);
             avActionFilter.Tau = tau;
-            avPID.Action = avActionFilter.Update(avPID.Action);
-            avPID.Action *= 1 - odFilter * OD.Update(avPID.Action, TimeWarp.fixedDeltaTime);
-            avPID.Action = -Utils.Clamp(avPID.Action / aaCap, -aaNorm, aaNorm);
+            pid.setTau(tau);
+            var errorDecreases = angleError < 0 && angularVelocity > 0
+                                 || angleError > 0 && angularVelocity < 0;
+            if(Mathf.Abs(angleError) < angularErrorTolerance)
+                pid.Update(Utils.Clamp(angularVelocity / aaCap, -1, 1) * aaNorm);
+            else if(errorDecreases)
+            {
+                var accelToStop = angleError.Equals(0)
+                    ? 0
+                    : angularVelocity * angularVelocity / 2 / angleError;
+                var accelToStopAbs = Mathf.Abs(accelToStop);
+                var decelerateThreshold = Mathf.Abs(pid.Action) < upperLowerActionThreshold
+                    ? decelerateThresholdUpper
+                    : decelerateThresholdLower;
+                if(accelToStopAbs > decelerateThreshold * aaCap)
+                    pid.Update(-Utils.Clamp(accelToStop, -aaCap, aaCap) / maxAA);
+                else if(accelToStopAbs < accelerateThreshold * aaCap
+                        && Math.Abs(angularVelocity) < maxAngularVelocity)
+                    pid.Update(Utils.Clamp(angleError * angleErrorToActionP, -1, 1) * aaNorm);
+                else
+                    pid.Update(0);
+            }
+            else
+                pid.Update(Utils.Clamp(angleError * angleErrorToActionP + angularVelocity / aaCap,
+                               -1,
+                               1)
+                           * aaNorm);
+            var action = tau > 0 ? avActionFilter.Update(pid.Action) : pid.Action;
+            if(odFilter > 0)
+                action *= 1 - odFilter * OD.Update(pid.Action, TimeWarp.fixedDeltaTime);
             DebugUtils.CSV($"AxisAttitudeCascade-{name}.csv",
                 Time.timeSinceLevelLoad,
                 angleError,
                 angularVelocity,
-                avError,
-                avPID.Action); //debug
-            return avPID.Action;
+                pid.Action,
+                action); //debug
+            return -action;
         }
     }
 }
