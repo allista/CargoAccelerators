@@ -109,23 +109,50 @@ namespace CargoAccelerators
         private Vector3 getTorque()
         {
             var torque = Vector6.zero;
+            var locRot = Quaternion.Inverse(vessel.ReferenceTransform.rotation);
+            var CoM = vessel.CurrentCoM;
+            var partShielded = host.part.ShieldedFromAirstream;
             for(int i = 0, count = torqueProviders.Count; i < count; i++)
             {
                 var torqueProvider = torqueProviders[i];
-                torqueProvider.GetPotentialTorque(out var pos, out var neg);
-                if(torqueProvider is ModuleReactionWheel rw)
+                if(torqueProvider is ModuleRCS rcs)
                 {
-                    var limit = rw.authorityLimiter / 100;
-                    pos *= limit;
-                    neg *= limit;
+                    if(!rcs.moduleIsEnabled
+                       || !rcs.rcsEnabled
+                       || !rcs.rcs_active
+                       || rcs.isJustForShow
+                       || rcs.flameout
+                       || partShielded && !rcs.shieldedCanThrust)
+                        continue;
+                    var thrustM = rcs.thrusterPower * rcs.thrustPercentage / 100;
+                    var nT = rcs.thrusterTransforms.Count;
+                    while(nT-- > 0)
+                    {
+                        var thruster = rcs.thrusterTransforms[nT];
+                        var lever = thruster.position - CoM;
+                        var thrustDir = rcs.useZaxis ? thruster.forward : thruster.up;
+                        var specificTorque = locRot * Vector3.Cross(lever, thrustDir);
+                        if(!rcs.enablePitch)
+                            specificTorque.x = 0;
+                        if(!rcs.enableRoll)
+                            specificTorque.y = 0;
+                        if(!rcs.enableYaw)
+                            specificTorque.z = 0;
+                        torque.Add(specificTorque * thrustM);
+                    }
                 }
-                torque.Add(pos);
-                torque.Add(-neg);
-                Utils.Log("{}: pos {}, neg {}, torque {}",
-                    torqueProvider.GetID(),
-                    pos,
-                    neg,
-                    torque);//debug
+                else
+                {
+                    torqueProvider.GetPotentialTorque(out var pos, out var neg);
+                    if(torqueProvider is ModuleReactionWheel rw)
+                    {
+                        var limit = rw.authorityLimiter / 100;
+                        pos *= limit;
+                        neg *= limit;
+                    }
+                    torque.Add(pos);
+                    torque.Add(-neg);
+                }
             }
             return torque.Max;
         }
@@ -144,11 +171,6 @@ namespace CargoAccelerators
             var torque = getTorque();
             var maxAA = Utils.AngularAcceleration(torque, vessel.MOI) * Mathf.Rad2Deg;
             var AV = vessel.angularVelocity * Mathf.Rad2Deg;
-            Utils.Log("torque {}, MOI {}, maxAA {}, AV {}",
-                torque,
-                vessel.MOI,
-                maxAA,
-                AV);//debug
             // x is direct error, y is pitch; see AttitudeError description
             rollPID.Update(AV.y);
             steering.x = pitchPID.Update(AttitudeError.y, -AV.x, maxAA.x);
