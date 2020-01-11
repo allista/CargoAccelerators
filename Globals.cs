@@ -4,7 +4,7 @@ namespace CargoAccelerators
 {
     public class Globals : PluginGlobals<Globals>
     {
-        public UIBundle AssetBundle = new UIBundle("CargoAccelerators/ca_ui");
+        public readonly UIBundle AssetBundle = new UIBundle("CargoAccelerators/ca_ui");
 
         [Persistent] public AttitudePIDCascade PitchYawController = new AttitudePIDCascade();
         [Persistent] public PIDf_Controller2 RollController = new PIDf_Controller2();
