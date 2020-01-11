@@ -15,8 +15,8 @@ namespace CargoAccelerators
         private ATMagneticDamper launchingDamper => host.launchingDamper;
         private bool connected;
 
-        private AttitudePIDCascade pitchPID, yawPID;
         private PIDf_Controller2 rollPID;
+        private ConstAttitudeController pitchController, yawController;
 
         private List<ITorqueProvider> torqueProviders = new List<ITorqueProvider>();
 
@@ -56,11 +56,11 @@ namespace CargoAccelerators
 
         public void InitPIDs()
         {
-            pitchPID = GLB.PitchYawController.Clone<AttitudePIDCascade>();
             rollPID = GLB.RollController.Clone<PIDf_Controller2>();
-            yawPID = GLB.PitchYawController.Clone<AttitudePIDCascade>();
-            pitchPID.name = "pitch"; //debug
-            yawPID.name = "yaw"; //debug
+            pitchController = GLB.PitchYawController.Clone<ConstAttitudeController>();
+            yawController = GLB.PitchYawController.Clone<ConstAttitudeController>();
+            pitchController.name = "pitch"; //debug
+            yawController.name = "yaw"; //debug
         }
 
         public void Connect()
@@ -173,9 +173,9 @@ namespace CargoAccelerators
             var AV = vessel.angularVelocity * Mathf.Rad2Deg;
             // x is direct error, y is pitch; see AttitudeError description
             rollPID.Update(AV.y);
-            steering.x = pitchPID.Update(AttitudeError.y, -AV.x, maxAA.x);
+            steering.x = pitchController.Update(AttitudeError.y, -AV.x, maxAA.x);
             steering.y = rollPID.Action;
-            steering.z = yawPID.Update(AttitudeError.z, -AV.z, maxAA.z);
+            steering.z = yawController.Update(AttitudeError.z, -AV.z, maxAA.z);
         }
 
         private void applySteering(FlightCtrlState s)
@@ -190,7 +190,7 @@ namespace CargoAccelerators
 
     [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Local")]
     [SuppressMessage("ReSharper", "ConvertToConstant.Local")]
-    public class AttitudePIDCascade : ConfigNodeObject
+    public class ConstAttitudeController : ConfigNodeObject
     {
         public string name = ""; //debug
         [Persistent] private float avFilter = 1f;

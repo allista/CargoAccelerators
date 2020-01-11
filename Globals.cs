@@ -9,8 +9,8 @@ namespace CargoAccelerators
     {
         public readonly UIBundle AssetBundle = new UIBundle("CargoAccelerators/ca_ui");
 
-        [Persistent] public AttitudePIDCascade PitchYawController = new AttitudePIDCascade();
         [Persistent] public PIDf_Controller2 RollController = new PIDf_Controller2();
+        [Persistent] public ConstAttitudeController PitchYawController = new ConstAttitudeController();
         [Persistent] public float USER_INPUT_TOL = 0.01f;
 
         [Persistent] public float MAX_ATTITUDE_ERROR = 0.05f; //deg
