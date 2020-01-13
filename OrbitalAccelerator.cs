@@ -330,7 +330,6 @@ namespace CargoAccelerators
                 return;
             if(launchParams == null || !launchParams.Valid)
                 return;
-            var referenceTransformRotation = vessel.ReferenceTransform.rotation;
             // update attitude error
             if(!AutoAlignEnabled || axisController.HasUserInput)
                 axisController.UpdateAttitudeError();
@@ -500,11 +499,6 @@ energy: {energy}";
                 UI.AddMessage("Patched conics are not available. Upgrade Tracking Station.");
                 return false;
             }
-            if(vessel.angularVelocity.sqrMagnitude > GLB.MAX_ANGULAR_VELOCITY_SQR)
-            {
-                UI.AddMessage("The accelerator is rotating. Stop the rotation and try again.");
-                return false;
-            }
             return true;
         }
 
@@ -518,7 +512,7 @@ energy: {energy}";
                 nodes[i].RemoveSelf();
         }
 
-        private bool acquirePayload()
+        private void acquirePayload()
         {
             UI.ClearMessages();
             var numberOfVessels = launchingDamper.VesselsInside.Count;
@@ -527,15 +521,12 @@ energy: {energy}";
                 UI.AddMessage(numberOfVessels == 0
                     ? "No payload in acceleration area."
                     : "Multiple vessels in acceleration area.");
-                return false;
+                return;
             }
             clearManeuverNodes();
             launchParams = new LaunchParams(this);
-            if(!launchParams.AcquirePayload(launchingDamper.VesselsInside.First()))
-                return false;
-            if(!checkPayloadManeuver())
-                return false;
-            return true;
+            if(launchParams.AcquirePayload(launchingDamper.VesselsInside.First()))
+                checkPayloadManeuver();
         }
 
         private float calculateLaunchDistance()
@@ -645,31 +636,46 @@ energy: {energy}";
             }
             if(!launchParams.UpdatePayloadNode() || !checkPayloadManeuver())
                 return false;
-            var nodeBurnVector = launchParams.GetManeuverVector();
-            var attitudeError =
-                Utils.Angle2((Vector3)nodeBurnVector, launchingDamper.attractorAxisW);
-            if(attitudeError > GLB.MAX_ATTITUDE_ERROR)
+            if(!AutoAlignEnabled)
             {
-                UI.AddMessage("Accelerator is not aligned with the maneuver node.");
+                axisController.UpdateAttitudeError();
+                if(!axisController.Aligned)
+                {
+                    UI.AddMessage("Accelerator is not aligned with the maneuver node.");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private bool canLaunch(bool postStatus = false)
+        {
+            if(vessel.angularVelocity.sqrMagnitude > GLB.MAX_ANGULAR_VELOCITY_SQR)
+            {
+                if(postStatus)
+                    UI.AddMessage("Accelerator is rotating.");
                 return false;
             }
             if(launchParams.payload.angularVelocity.sqrMagnitude > GLB.MAX_ANGULAR_VELOCITY_SQR)
             {
-                UI.AddMessage("Payload is rotating. Stop the rotation and try again.");
+                if(postStatus)
+                    UI.AddMessage("Payload is rotating.");
                 return false;
             }
             var relVel = launchParams.payload.obt_velocity - vessel.obt_velocity;
             if(relVel.sqrMagnitude > GLB.MAX_RELATIVE_VELOCITY_SQR)
             {
-                UI.AddMessage("Payload is moving. Wait for it to stop and try again.");
+                if(postStatus)
+                    UI.AddMessage("Payload is moving.");
                 return false;
             }
             if((launchParams.payload.CurrentCoM
                 - loadingDamper.attractor.position).magnitude
                > GLB.MAX_DISPLACEMENT)
             {
-                UI.AddMessage(
-                    "Payload is not at the launch position yet. Wait for it to settle and try again.");
+                if(postStatus)
+                    UI.AddMessage(
+                        "Payload is not at the launch position.");
                 return false;
             }
             return true;
@@ -690,9 +696,23 @@ energy: {energy}";
             return false;
         }
 
-        private IEnumerator<YieldInstruction> waitAndReCheck(int secondsBeforeLaunch)
+        private IEnumerator<YieldInstruction> checkAndWait(int secondsBeforeLaunch)
         {
+            if(!preLaunchCheck())
+            {
+                abortLaunchInternal(nextState: AcceleratorState.LOADED);
+                yield break;
+            }
+            while(Planetarium.GetUniversalTime() < launchParams.launchUT
+                  && !canLaunch())
+                yield return null;
             var timeLeft = launchParams.launchUT - Planetarium.GetUniversalTime();
+            if(timeLeft < 0)
+            {
+                abortLaunchInternal("Missed launch window.",
+                    AcceleratorState.LOADED);
+                yield break;
+            }
             if(timeLeft > secondsBeforeLaunch + 10)
             {
                 var warpToTime = launchParams.launchUT - secondsBeforeLaunch;
@@ -702,29 +722,34 @@ energy: {energy}";
                 while(launchParams.payload != null && launchParams.payload.packed)
                     yield return new WaitForFixedUpdate();
                 yield return null;
-                if(!preLaunchCheck())
-                    abortLaunchInternal("Pre-launch checks failed.",
-                        AcceleratorState.LOADED);
             }
         }
 
         private IEnumerator<YieldInstruction> launchPayload()
         {
             yield return null;
-            if(!(selfCheck()
-                 && preLaunchCheck()))
+            if(!selfCheck())
             {
-                abortLaunchInternal("Pre-launch checks failed.", AcceleratorState.LOADED);
+                abortLaunchInternal(nextState: AcceleratorState.LOADED);
                 yield break;
             }
-            yield return StartCoroutine(waitAndReCheck(180));
+            yield return StartCoroutine(checkAndWait(180));
             if(State != AcceleratorState.LAUNCH)
                 yield break;
-            yield return StartCoroutine(waitAndReCheck(30));
+            yield return StartCoroutine(checkAndWait(30));
+            if(State != AcceleratorState.LAUNCH)
+                yield break;
+            yield return StartCoroutine(checkAndWait(10));
             if(State != AcceleratorState.LAUNCH)
                 yield break;
             while(Planetarium.GetUniversalTime() < launchParams.launchUT)
                 yield return new WaitForFixedUpdate();
+            if(!(preLaunchCheck() && canLaunch(true)))
+            {
+                abortLaunchInternal("Pre-launch checks failed.",
+                    AcceleratorState.LOADED);
+                yield break;
+            }
             preLaunchOrbit = new Orbit(vessel.orbit);
             launchParams.maneuverStarted = true;
             launchParams.SetPayloadUnpackDistance(vesselSize * 2);
