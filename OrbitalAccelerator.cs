@@ -626,6 +626,9 @@ energy: {energy}";
             return minAccelerationTolerance * Utils.G0 * 0.98;
         }
 
+        /// <summary>
+        /// This check, whenever failed, aborts the launch.
+        /// </summary>
         private bool preLaunchCheck()
         {
             UI.ClearMessages();
@@ -648,6 +651,13 @@ energy: {energy}";
             return true;
         }
 
+        /// <summary>
+        /// This check tells if everything is ready for the launch.
+        /// It is made frame after frame before time warp until true.
+        /// It is also made one final time just before launch; in which
+        /// case it causes the launch to abort.
+        /// </summary>
+        /// <param name="postStatus">If true, post UI message about the failed condition.</param>
         private bool canLaunch(bool postStatus = false)
         {
             if(vessel.angularVelocity.sqrMagnitude > GLB.MAX_ANGULAR_VELOCITY_SQR)
