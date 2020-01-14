@@ -656,6 +656,14 @@ energy: {energy}";
                     UI.AddMessage("Accelerator is rotating.");
                 return false;
             }
+            if(!AutoAlignEnabled)
+                axisController.UpdateAttitudeError();
+            if(!axisController.Aligned)
+            {
+                if(postStatus)
+                    UI.AddMessage("Accelerator is not aligned with the maneuver node.");
+                return false;
+            }
             if(launchParams.payload.angularVelocity.sqrMagnitude > GLB.MAX_ANGULAR_VELOCITY_SQR)
             {
                 if(postStatus)
