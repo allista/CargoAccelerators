@@ -768,6 +768,9 @@ energy: {energy}";
                     AcceleratorState.LOADED);
                 yield break;
             }
+#if DEBUG
+            this.Log(launchParams.ToString());
+#endif
             preLaunchOrbit = new Orbit(vessel.orbit);
             launchParams.maneuverStarted = true;
             launchParams.SetPayloadUnpackDistance(vesselSize * 2);
@@ -775,7 +778,6 @@ energy: {energy}";
             launchingDamper.AttractorPower = (float)launchParams.acceleration;
             launchingDamper.Fields.SetValue<float>(nameof(ATMagneticDamper.Attenuation), 0);
             launchingDamper.EnableDamper(true);
-            this.Log(launchParams.ToString()); //debug
             while(true)
             {
                 yield return new WaitForFixedUpdate();
