@@ -80,7 +80,7 @@ namespace CA.UI
             float maneuverEnergy
         )
         {
-            deltaV.text = $"dV {FormatUtils.formatBigValue(maneuverDeltaV, "m/s", "F2")}";
+            deltaV.text = $"{FormatUtils.formatBigValue(maneuverDeltaV, "m/s", "F2")}";
             acceleration.text = $"{maxAcceleration / FormatUtils.G0:F2}g";
             duration.text = $"{maneuverDuration:F3}s";
             energy.text = FormatUtils.formatBigValue(maneuverEnergy, "EC");
