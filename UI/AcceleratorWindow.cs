@@ -20,6 +20,7 @@ namespace CargoAccelerators.UI
         protected override void init_controller()
         {
             Controller.closeButton.onClick.AddListener(close);
+            Controller.colorsButton.onClick.AddListener(toggleColors);
             Controller.acquirePayloadButton.onClick.AddListener(accelerator.AcquirePayload);
             Controller.ejectPayloadButton.onClick.AddListener(accelerator.EjectPayload);
             Controller.abortButton.onClick.AddListener(accelerator.AbortOperations);
@@ -38,6 +39,11 @@ namespace CargoAccelerators.UI
                 accelerator.Fields.SetValue(nameof(OrbitalAccelerator.ShowUI), false);
             else
                 Close();
+        }
+
+        private void toggleColors()
+        {
+            Controller.ToggleStylesUI();
         }
 
         private void updateMessage()

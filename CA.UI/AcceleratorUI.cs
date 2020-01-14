@@ -7,6 +7,7 @@ namespace CA.UI
     public class AcceleratorUI : ScreenBoundRect
     {
         public Button closeButton,
+            colorsButton,
             acquirePayloadButton,
             ejectPayloadButton,
             launchButton,
