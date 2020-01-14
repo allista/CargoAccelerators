@@ -209,6 +209,10 @@ namespace CargoAccelerators
         {
             AutoAlignEnabled = enable;
             axisController.Reset();
+            if(enable)
+            {
+                vessel.ActionGroups.SetGroup(KSPActionGroup.SAS, false);
+            }
         }
 
         public void LaunchPayload()
