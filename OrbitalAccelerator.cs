@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using AT_Utils;
 using CargoAccelerators.UI;
+using JetBrains.Annotations;
 using KSP.Localization;
 using UnityEngine;
 
@@ -209,10 +210,29 @@ namespace CargoAccelerators
         {
             AutoAlignEnabled = enable;
             axisController.Reset();
+            if(UI.IsShown)
+                UI.Controller.autoAlignToggle.SetIsOnWithoutNotify(enable);
             if(enable)
             {
                 vessel.ActionGroups.SetGroup(KSPActionGroup.SAS, false);
+                vessel.Parts.ForEach(p =>
+                    p.SendMessage("DisableAttitudeControl",
+                        this,
+                        SendMessageOptions.DontRequireReceiver));
             }
+        }
+
+        /// <summary>
+        /// It is a component message handler.
+        /// The "DisableAttitudeControl" message is sent from TCA mod when
+        /// its own attitude control is enabled.
+        /// </summary>
+        [UsedImplicitly]
+        private void DisableAttitudeControl(object value)
+        {
+            if(value.Equals(this))
+                return;
+            ToggleAutoAlign(false);
         }
 
         public void LaunchPayload()
