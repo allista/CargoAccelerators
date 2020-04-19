@@ -372,9 +372,11 @@ namespace CargoAccelerators
             var payloadAV = launchParams.payload.angularVelocity.sqrMagnitude;
             var dist = (launchParams.payload.CurrentCoM
                         - loadingDamper.attractor.position).magnitude;
-            UI.Controller.UpdatePayloadInfo((float)Math.Sqrt(relV),
+            UI.Controller.UpdatePayloadInfo((float)launchParams.maxDeltaV,
+                (float)Math.Sqrt(relV),
                 Mathf.Sqrt(payloadAV) * Mathf.Rad2Deg,
                 dist,
+                launchParams.maxDeltaV > launchParams.nodeDeltaVm,
                 relV < GLB.MAX_RELATIVE_VELOCITY_SQR,
                 payloadAV < GLB.MAX_ANGULAR_VELOCITY_SQR,
                 dist < GLB.MAX_DISPLACEMENT);
@@ -439,6 +441,7 @@ namespace CargoAccelerators
             public bool UpdatePayloadNode()
             {
                 maneuverValid = false;
+                nodeDeltaVm = 0;
                 if(payload.patchedConicSolver != null
                    && payload.patchedConicSolver.maneuverNodes.Count > 0)
                 {

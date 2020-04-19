@@ -25,6 +25,7 @@ namespace CA.UI
             attitudeError,
             pitchError,
             yawError,
+            maxDeltaV,
             relVelocity,
             angularVelocity;
 
@@ -56,6 +57,7 @@ namespace CA.UI
             attitudeError.text = "";
             pitchError.text = "";
             yawError.text = "";
+            maxDeltaV.text = "";
             relVelocity.text = "";
             angularVelocity.text = "";
             displacement.text = "";
@@ -96,17 +98,21 @@ namespace CA.UI
         }
 
         public void UpdatePayloadInfo(
+            float dVmax,
             float relV,
             float relAV,
             float dist,
+            bool dVmax_ok,
             bool relV_ok,
             bool relAV_ok,
             bool dist_ok
         )
         {
+            maxDeltaV.text = FormatUtils.formatBigValue(dVmax, "m/s");
             relVelocity.text = $"{relV:F3}m/s";
             angularVelocity.text = $"{relAV:F3}°/s";
             displacement.text = $"{dist:F3}m";
+            maxDeltaV.color = dVmax_ok ? Colors.Good : Colors.Neutral;
             relVelocity.color = relV_ok ? Colors.Good : Colors.Neutral;
             angularVelocity.color = relAV_ok ? Colors.Good : Colors.Neutral;
             displacement.color = dist_ok ? Colors.Good : Colors.Neutral;
