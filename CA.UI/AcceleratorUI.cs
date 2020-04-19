@@ -27,9 +27,8 @@ namespace CA.UI
             yawError,
             maxDeltaV,
             relVelocity,
-            angularVelocity;
-
-        public Text displacement,
+            angularVelocity,
+            displacement,
             message,
             status;
 
