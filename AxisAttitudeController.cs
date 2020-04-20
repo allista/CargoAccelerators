@@ -281,12 +281,12 @@ namespace CargoAccelerators
             var action = tau > 0 ? avActionFilter.Update(pid.Action) : pid.Action;
             if(odFilter > 0)
                 action *= 1 - odFilter * OD.Update(pid.Action, TimeWarp.fixedDeltaTime);
-            DebugUtils.CSV($"AxisAttitudeCascade-{name}.csv",
-                Time.timeSinceLevelLoad,
-                angleError,
-                angularVelocity,
-                pid.Action,
-                action); //debug
+            // DebugUtils.CSV($"AxisAttitudeCascade-{name}.csv",
+            //     Time.timeSinceLevelLoad,
+            //     angleError,
+            //     angularVelocity,
+            //     pid.Action,
+            //     action); //debug
             return -action;
         }
     }
