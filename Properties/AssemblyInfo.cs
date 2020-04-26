@@ -40,8 +40,8 @@ namespace CargoAccelerators
     {
         public ModInfo()
         {
-            MinKSPVersion = new Version(1, 8, 1);
-            MaxKSPVersion = new Version(1, 8, 1);
+            MinKSPVersion = new Version(1, 9, 0);
+            MaxKSPVersion = new Version(1, 9, 1);
 
             VersionURL =
                 "https://raw.githubusercontent.com/allista/CargoAccelerators/master/GameData/CargoAccelerators/CargoAccelerators.version";
