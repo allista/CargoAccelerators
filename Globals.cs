@@ -7,7 +7,7 @@ namespace CargoAccelerators
     [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
     public class Globals : PluginGlobals<Globals>
     {
-        public readonly UIBundle AssetBundle = new UIBundle("CargoAccelerators/ca_ui");
+        public readonly UIBundle AssetBundle = new UIBundle("CargoAccelerators/ca_ui.ksp");
 
         [Persistent] public ConstAttitudeController PitchYawController = new ConstAttitudeController();
         [Persistent] public PIDf_Controller2 AvDampingController = new PIDf_Controller2();
