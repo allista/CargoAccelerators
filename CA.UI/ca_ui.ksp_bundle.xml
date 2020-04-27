@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<KSPBundleDefinition xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" UrlName="ca_ui.ksp" Name="ca_ui.ksp" CreatedTime="-8586217491814449968">
+<KSPBundleDefinition xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" UrlName="ca_ui.ksp" Name="ca_ui.ksp" CreatedTime="-8586136973142696878">
   <Author>Allis Tauri</Author>
   <Info>allista@gmail.com</Info>
   <Assets>
     <Asset Name="AcceleratorUI" Path="Assets/UI/CA/AcceleratorUI.prefab" Type="GameObject" Url="UI/CA/AcceleratorUI" AutoLoad="false" />
-    <Asset Name="AcceleratorUI1" Path="Assets/UI/CA/AcceleratorUI1.prefab" Type="GameObject" Url="UI/CA/AcceleratorUI1" AutoLoad="false" />
   </Assets>
   <Dependencies>
     <Dependency>at_utils_ui.ksp</Dependency>
