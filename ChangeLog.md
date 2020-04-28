@@ -1,7 +1,10 @@
 #Cargo Accelerators ChangeLog
 
+* **v0.1.0.1**
+    * **Compatible with KSP-1.9**
+    * Compiled against AT_Utils 1.9.2
 
-* **v0.1.0**
+* v0.1.0
     * Initial release
     * Working orbital accelerator mechanics
         * precise dV for the maneuver
