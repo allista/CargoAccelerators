@@ -1,5 +1,9 @@
 #Cargo Accelerators ChangeLog
 
+* **v0.1.0.2**
+    * Fixed UI disappearing after scene switch
+    * Compiled against AT_Utils 1.9.3
+
 * **v0.1.0.1**
     * **Compatible with KSP-1.9**
     * Compiled against AT_Utils 1.9.2
