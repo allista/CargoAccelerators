@@ -30,6 +30,7 @@ namespace CargoAccelerators
         [KSPField] public string BarrelAttachmentTransform = "BarrelAttachment";
         [KSPField] public string SegmentTransform = "BarrelSegment";
         [KSPField] public string SegmentSensorTransform = "BarrelSegmentSensor";
+        [KSPField] public string ScaffoldTransform = "BarrelScaffold";
         [KSPField] public string NextSegmentTransform = "NextSegment";
 
         [KSPField] public int MaxSegments = 20;
@@ -71,6 +72,7 @@ namespace CargoAccelerators
         public ATMagneticDamper loadingDamper;
         public ExtensibleMagneticDamper launchingDamper;
         public GameObject barrelSegmentPrefab;
+        public GameObject segmentScaffoldPrefab;
         private float vesselSize;
         private float launchingAttractorOrigPower;
 
@@ -85,10 +87,30 @@ namespace CargoAccelerators
         public override void OnAwake()
         {
             base.OnAwake();
-            var T = part.FindModelTransform(SegmentTransform);
-            if(T != null)
-                T.gameObject.SetActive(false);
+            findTransforms();
             GameEvents.onVesselWasModified.Add(onVesselWasModified);
+        }
+
+        private bool findTransforms()
+        {
+            var success = true;
+            var T = part.FindModelTransform(SegmentTransform);
+            if(T == null)
+            {
+                this.Log($"Unable to find {SegmentTransform} model transform");
+                success = false;
+            }
+            barrelSegmentPrefab = T.gameObject;
+            barrelSegmentPrefab.SetActive(false);
+            T = part.FindModelTransform(ScaffoldTransform);
+            if(T != null)
+            {
+                segmentScaffoldPrefab = T.gameObject;
+                segmentScaffoldPrefab.SetActive(false);
+            }
+            else
+                this.Log($"Unable to find {ScaffoldTransform} model transform");
+            return success;
         }
 
         public override void OnStart(StartState state)
@@ -98,14 +120,11 @@ namespace CargoAccelerators
             this.Log(
                 $"prefab model tree: {DebugUtils.formatTransformTree(part.partInfo.partPrefab.transform)}");
 #endif
-            var T = part.partInfo.partPrefab.FindModelTransform(SegmentTransform);
-            if(T == null)
+            if(!findTransforms())
             {
-                this.Log($"Unable to find {SegmentTransform} model transform");
                 this.EnableModule(false);
                 return;
             }
-            barrelSegmentPrefab = T.gameObject;
             loadingDamper = ATMagneticDamper.GetDamper(part, LoadingDamperID);
             if(loadingDamper == null)
             {
