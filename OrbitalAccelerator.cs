@@ -241,14 +241,13 @@ namespace CargoAccelerators
             axisController.Reset();
             if(UI.IsShown)
                 UI.Controller.autoAlignToggle.SetIsOnWithoutNotify(enable);
-            if(enable)
-            {
-                vessel.ActionGroups.SetGroup(KSPActionGroup.SAS, false);
-                vessel.Parts.ForEach(p =>
-                    p.SendMessage("DisableAttitudeControl",
-                        this,
-                        SendMessageOptions.DontRequireReceiver));
-            }
+            if(!enable)
+                return;
+            vessel.ActionGroups.SetGroup(KSPActionGroup.SAS, false);
+            vessel.Parts.ForEach(p =>
+                p.SendMessage("DisableAttitudeControl",
+                    this,
+                    SendMessageOptions.DontRequireReceiver));
         }
 
         /// <summary>
@@ -982,10 +981,7 @@ energy: {energy}";
                     }
                     attachmentPoint.gameObject.SetActive(true);
                     newSegment.SetActive(true);
-                    barrelSegments.Add(new BarrelSegment
-                    {
-                        segmentGO = newSegment, segmentSensor = newSegmentSensor
-                    });
+                    barrelSegments.Add(new BarrelSegment { segmentGO = newSegment, segmentSensor = newSegmentSensor });
                 }
             }
             else
@@ -1119,8 +1115,7 @@ energy: {energy}";
 
         public OrbitDriver GetOrbitDriver() => vessel.GetOrbitDriver();
 
-        public VesselTargetModes GetTargetingMode() =>
-            VesselTargetModes.DirectionVelocityAndOrientation;
+        public VesselTargetModes GetTargetingMode() => VesselTargetModes.DirectionVelocityAndOrientation;
 
         public bool GetActiveTargetable() => false;
     }
