@@ -21,7 +21,8 @@ namespace CargoAccelerators
             ACQUIRE_PAYLOAD,
             EJECT,
             LAUNCH,
-            ABORT
+            ABORT,
+            UNDER_CONSTRUCTION
         }
 
         [KSPField] public string LoadingDamperID = "LoadingDamper";
@@ -300,6 +301,18 @@ namespace CargoAccelerators
             launchingDamper.InvertAttractor = true;
             switch(State)
             {
+                case AcceleratorState.UNDER_CONSTRUCTION:
+                    if(launchParams != null)
+                    {
+                        launchParams.Cleanup();
+                        launchParams = null;
+                        UI.UpdatePayloadInfo();
+                    }
+                    if(loadingDamper.DamperEnabled)
+                        loadingDamper.EnableDamper(false);
+                    if(launchingDamper.DamperEnabled)
+                        launchingDamper.EnableDamper(false);
+                    break;
                 case AcceleratorState.IDLE:
                     if(launchParams != null)
                     {

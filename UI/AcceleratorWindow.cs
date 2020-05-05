@@ -88,6 +88,14 @@ namespace CargoAccelerators.UI
             var hasPayload = launchParams != null && launchParams.Valid;
             switch(accelerator.State)
             {
+                case OrbitalAccelerator.AcceleratorState.UNDER_CONSTRUCTION:
+                    Controller.status.text = "Accelerator is under construction";
+                    Controller.status.color = Colors.Warning;
+                    Controller.acquirePayloadButton.SetInteractable(false);
+                    Controller.abortButton.SetInteractable(false);
+                    Controller.ejectPayloadButton.SetInteractable(false);
+                    Controller.launchButton.SetInteractable(false);
+                    break;
                 case OrbitalAccelerator.AcceleratorState.IDLE:
                     Controller.status.text = "Accelerator is idle";
                     Controller.status.color = Colors.Neutral;
