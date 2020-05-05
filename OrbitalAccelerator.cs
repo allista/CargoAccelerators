@@ -71,6 +71,7 @@ namespace CargoAccelerators
         private AxisAttitudeController axisController;
         public ATMagneticDamper loadingDamper;
         public ExtensibleMagneticDamper launchingDamper;
+        public Transform barrelAttachmentTransform;
         public GameObject barrelSegmentPrefab;
         public GameObject segmentScaffoldPrefab;
         private float vesselSize;
@@ -102,6 +103,13 @@ namespace CargoAccelerators
             }
             barrelSegmentPrefab = T.gameObject;
             barrelSegmentPrefab.SetActive(false);
+            T = part.FindModelTransform(BarrelAttachmentTransform);
+            if(T == null)
+            {
+                this.Log($"Unable to find {BarrelAttachmentTransform} model transform");
+                success = false;
+            }
+            barrelAttachmentTransform = T;
             T = part.FindModelTransform(ScaffoldTransform);
             if(T != null)
             {
@@ -921,7 +929,7 @@ energy: {energy}";
                 {
                     Transform attachmentPoint;
                     if(i == 0)
-                        attachmentPoint = part.FindModelTransform(BarrelAttachmentTransform);
+                        attachmentPoint = barrelAttachmentTransform;
                     else
                     {
                         var prevSegment = barrelSegments[i - 1];
