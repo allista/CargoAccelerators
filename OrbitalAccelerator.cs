@@ -48,6 +48,7 @@ namespace CargoAccelerators
 
         [KSPField(isPersistant = true)] public AcceleratorState State = AcceleratorState.IDLE;
         [KSPField(isPersistant = true)] public bool AutoAlignEnabled;
+        [KSPField(isPersistant = true)] public float ConstructionProgress = -1;
 
         [KSPField(isPersistant = true,
             guiName = "Accelerator Controls",
@@ -1013,7 +1014,7 @@ energy: {energy}";
         private void updateCoMOffset()
         {
             part.CoMOffset = Vector3.zero;
-            if(barrelSegments.Count == 0)
+            if(barrelSegments.Count == 0 && ConstructionProgress <= 0)
                 return;
             part.UpdateMass();
             var ori = part.partTransform.position;
@@ -1022,6 +1023,14 @@ energy: {energy}";
                 (current, segment) =>
                     current
                     + (segment.segmentGO.transform.TransformPoint(SegmentCoM) - ori) * SegmentMass);
+            if(ConstructionProgress > 0)
+            {
+                var growthPoint = barrelSegments.Count > 0
+                    ? barrelSegments[barrelSegments.Count - 1].segmentGO.transform
+                    : barrelAttachmentTransform;
+                CoM += growthPoint.TransformPoint(SegmentCoM)
+                       * (SegmentMass * ConstructionProgress * ConstructionProgress);
+            }
             part.CoMOffset = part.partTransform.InverseTransformDirection(CoM / part.mass);
         }
 
@@ -1064,13 +1073,21 @@ energy: {energy}";
         }
         #endregion
 
-        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit) =>
-            barrelSegments.Count * SegmentMass;
+        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
+        {
+            if(ConstructionProgress > 0)
+                return (barrelSegments.Count + ConstructionProgress) * SegmentMass;
+            return barrelSegments.Count * SegmentMass;
+        }
 
         public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.CONSTANTLY;
 
-        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit) =>
-            barrelSegments.Count * SegmentCost;
+        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
+        {
+            if(ConstructionProgress > 0)
+                return (barrelSegments.Count + ConstructionProgress) * SegmentCost;
+            return barrelSegments.Count * SegmentCost;
+        }
 
         public ModifierChangeWhen GetModuleCostChangeWhen() => ModifierChangeWhen.CONSTANTLY;
 
