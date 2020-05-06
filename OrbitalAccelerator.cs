@@ -925,9 +925,16 @@ energy: {energy}";
         #region Segments
         private void onNumSegmentsChange(object value)
         {
-            numSegments = (int)numSegments;
-            if(!updateSegments())
-                Fields.SetValue<float>(nameof(numSegments), barrelSegments.Count);
+            if(State == AcceleratorState.IDLE)
+            {
+                numSegments = (int)numSegments;
+                if(updateSegments())
+                {
+                    UpdateParams();
+                    return;
+                }
+            }
+            numSegments = barrelSegments.Count;
         }
 
         private bool updateSegments()
