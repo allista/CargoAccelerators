@@ -47,6 +47,14 @@ namespace CargoAccelerators
         [UI_FloatRange(scene = UI_Scene.All, minValue = 0, maxValue = 20, stepIncrement = 1)]
         public float numSegments;
 
+        [KSPField(isPersistant = true,
+            guiActive = true,
+            guiActiveEditor = true,
+            guiName = "Construction",
+            guiFormat = "P1")]
+        [UI_FloatRange(scene = UI_Scene.All, minValue = -0.1f, maxValue = 1.1f, stepIncrement = 0.1f)]
+        public float constructionSlider = -0.1f;
+
         [KSPField(isPersistant = true)] public AcceleratorState State = AcceleratorState.IDLE;
         [KSPField(isPersistant = true)] public bool AutoAlignEnabled;
         [KSPField(isPersistant = true)] public float ConstructionProgress = -1;
@@ -170,6 +178,8 @@ namespace CargoAccelerators
                 numSegmentsControlEditor.maxValue = MaxSegments;
             if(numSegmentsField.uiControlFlight is UI_FloatRange numSegmentsControlFlight)
                 numSegmentsControlFlight.maxValue = MaxSegments;
+            var constructionSliderField = Fields[nameof(constructionSlider)];
+            constructionSliderField.OnValueModified += onConstructionChange;
             Fields[nameof(ShowUI)].OnValueModified += showUI;
             axisController = new AxisAttitudeController(this);
             UI = new AcceleratorWindow(this);
@@ -931,6 +941,41 @@ energy: {energy}";
         #endregion
 
         #region Segments
+        private void onConstructionChange(object value)
+        {
+            if(constructionSlider < 0)
+            {
+                changeState(AcceleratorState.IDLE);
+            }
+            else if(constructionSlider <= 1)
+            {
+                if(ConstructionProgress < 0 && State != AcceleratorState.IDLE)
+                {
+                    constructionSlider = ConstructionProgress;
+                    return;
+                }
+                changeState(AcceleratorState.UNDER_CONSTRUCTION);
+            }
+            else
+            {
+                changeState(AcceleratorState.IDLE);
+                numSegments = barrelSegments.Count + 1;
+                if(!updateSegments())
+                {
+                    numSegments = barrelSegments.Count;
+                    constructionSlider = ConstructionProgress;
+                    return;
+                }
+                constructionSlider = -0.1f;
+            }
+            var prevProgress = ConstructionProgress;
+            ConstructionProgress = constructionSlider;
+            if(updateScaffold())
+                UpdateParams();
+            else
+                constructionSlider = prevProgress;
+        }
+
         private void onNumSegmentsChange(object value)
         {
             if(State == AcceleratorState.IDLE)
