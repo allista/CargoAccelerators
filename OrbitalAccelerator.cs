@@ -1020,10 +1020,7 @@ energy: {energy}";
                 {
                     var attachmentPoint = getAttachmentTransform();
                     if(attachmentPoint == null)
-                    {
-                        this.Log("Unable to find attachment point transform");
                         return false;
-                    }
                     var newSegment = Instantiate(barrelSegmentPrefab, attachmentPoint, false);
                     if(newSegment == null)
                     {
