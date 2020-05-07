@@ -38,6 +38,7 @@ namespace CargoAccelerators
         [KSPField] public float SegmentMass;
         [KSPField] public float SegmentCost;
         [KSPField] public Vector3 SegmentCoM;
+        [KSPField] public Vector3 ScaffoldStartScale = new Vector3(1, 1, 0.01f);
 
         [KSPField(isPersistant = true,
             guiActive = true,
@@ -76,6 +77,7 @@ namespace CargoAccelerators
         public Transform barrelAttachmentTransform;
         public GameObject barrelSegmentPrefab;
         public GameObject segmentScaffoldPrefab;
+        public GameObject segmentScaffold;
         private float vesselSize;
         private float launchingAttractorOrigPower;
 
@@ -156,6 +158,12 @@ namespace CargoAccelerators
                 this.EnableModule(false);
                 return;
             }
+            if(!updateScaffold())
+            {
+                this.EnableModule(false);
+                return;
+            }
+            UpdateParams();
             var numSegmentsField = Fields[nameof(numSegments)];
             numSegmentsField.OnValueModified += onNumSegmentsChange;
             if(numSegmentsField.uiControlEditor is UI_FloatRange numSegmentsControlEditor)
@@ -937,6 +945,24 @@ energy: {energy}";
             numSegments = barrelSegments.Count;
         }
 
+        private Transform getAttachmentTransform()
+        {
+            Transform attachmentPoint;
+            var lastSegmentIdx = barrelSegments.Count - 1;
+            if(lastSegmentIdx < 0)
+                attachmentPoint = barrelAttachmentTransform;
+            else
+            {
+                var prevSegment = barrelSegments[lastSegmentIdx];
+                attachmentPoint =
+                    Part.FindHeirarchyTransform(prevSegment.segmentGO.transform,
+                        NextSegmentTransform);
+            }
+            if(attachmentPoint == null)
+                this.Log("ERROR: Unable to find attachment point transform");
+            return attachmentPoint;
+        }
+
         private bool updateSegments()
         {
             var haveSegments = barrelSegments.Count;
@@ -947,16 +973,7 @@ energy: {energy}";
             {
                 for(var i = haveSegments; i < numSegments_i; i++)
                 {
-                    Transform attachmentPoint;
-                    if(i == 0)
-                        attachmentPoint = barrelAttachmentTransform;
-                    else
-                    {
-                        var prevSegment = barrelSegments[i - 1];
-                        attachmentPoint =
-                            Part.FindHeirarchyTransform(prevSegment.segmentGO.transform,
-                                NextSegmentTransform);
-                    }
+                    var attachmentPoint = getAttachmentTransform();
                     if(attachmentPoint == null)
                     {
                         this.Log("Unable to find attachment point transform");
@@ -1001,8 +1018,37 @@ energy: {energy}";
                     barrelSegments.RemoveAt(i);
                 }
             }
-            UpdateParams();
             StartCoroutine(delayedUpdateRCS());
+            return true;
+        }
+
+        private bool updateScaffold()
+        {
+            if(ConstructionProgress < 0)
+            {
+                if(segmentScaffold == null)
+                    return true;
+                if(HighLogic.LoadedSceneIsFlight)
+                    FXMonger.Explode(part, segmentScaffold.transform.position, 0);
+                Destroy(segmentScaffold);
+                segmentScaffold = null;
+            }
+            else
+            {
+                if(segmentScaffold == null)
+                {
+                    var attachmentPoint = getAttachmentTransform();
+                    if(attachmentPoint == null)
+                        return false;
+                    segmentScaffold = Instantiate(segmentScaffoldPrefab, attachmentPoint, false);
+                    segmentScaffold.transform.localPosition = Vector3.zero;
+                    segmentScaffold.transform.localRotation = Quaternion.identity;
+                    segmentScaffold.SetActive(true);
+                }
+                segmentScaffold.transform.localScale =
+                    Vector3.Lerp(ScaffoldStartScale, Vector3.one, ConstructionProgress);
+                segmentScaffold.transform.hasChanged = true;
+            }
             return true;
         }
 
