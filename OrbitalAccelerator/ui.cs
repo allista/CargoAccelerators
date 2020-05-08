@@ -1,3 +1,4 @@
+using AT_Utils;
 using UnityEngine;
 
 namespace CargoAccelerators
@@ -110,6 +111,11 @@ namespace CargoAccelerators
         {
             Globals.Load();
             axisController.InitPIDs();
+        }
+
+        private void OnRenderObject()
+        {
+            Utils.GLDrawPoint(part.partTransform.TransformPoint(part.CoMOffset), Color.green);
         }
 #endif
     }
