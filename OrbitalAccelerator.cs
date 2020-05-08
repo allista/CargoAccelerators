@@ -22,6 +22,7 @@ namespace CargoAccelerators
             EJECT,
             LAUNCH,
             ABORT,
+            DEPLOY_SCAFFOLD,
             UNDER_CONSTRUCTION
         }
 
@@ -292,6 +293,17 @@ namespace CargoAccelerators
             changeState(AcceleratorState.LAUNCH);
         }
 
+        private bool startConstruction()
+        {
+            if(State != AcceleratorState.IDLE)
+                return false;
+            UI.ClearMessages();
+            deploymentProgress = 0;
+            constructionProgress = -1;
+            changeState(AcceleratorState.DEPLOY_SCAFFOLD);
+            return true;
+        }
+
 #if DEBUG
         [KSPEvent(active = true, guiActive = true, guiName = "Reload CA Globals")]
         public void ReloadGlobals()
@@ -309,6 +321,20 @@ namespace CargoAccelerators
             UI.UpdateState();
         }
 
+        private void disableDampers()
+        {
+            if(launchParams != null)
+            {
+                launchParams.Cleanup();
+                launchParams = null;
+                UI.UpdatePayloadInfo();
+            }
+            if(loadingDamper.DamperEnabled)
+                loadingDamper.EnableDamper(false);
+            if(launchingDamper.DamperEnabled)
+                launchingDamper.EnableDamper(false);
+        }
+
         private void Update()
         {
             if(!HighLogic.LoadedSceneIsFlight || FlightDriver.Pause)
@@ -320,50 +346,44 @@ namespace CargoAccelerators
             launchingDamper.InvertAttractor = true;
             switch(State)
             {
-                case AcceleratorState.UNDER_CONSTRUCTION:
-                    if(launchParams != null)
-                    {
-                        launchParams.Cleanup();
-                        launchParams = null;
-                        UI.UpdatePayloadInfo();
-                    }
-                    if(loadingDamper.DamperEnabled)
-                        loadingDamper.EnableDamper(false);
-                    if(launchingDamper.DamperEnabled)
-                        launchingDamper.EnableDamper(false);
-                    if(deploymentProgress < 0)
-                    {
-                        deploymentProgress = 0;
-                        updateScaffold();
-                    }
-                    else if(deploymentProgress < 1)
+                case AcceleratorState.DEPLOY_SCAFFOLD:
+                    disableDampers();
+                    if(deploymentProgress < 1)
                     {
                         deploymentProgress += TimeWarp.deltaTime / 10;
+                        if(deploymentProgress > 1)
+                            deploymentProgress = 1;
                         updateScaffold();
                     }
                     else
                     {
-                        if(constructionProgress < 0)
-                            constructionProgress = 0;
-                        else if(constructionProgress < 1)
+                        deploymentProgress = -1;
+                        constructionProgress = 0;
+                        changeState(AcceleratorState.UNDER_CONSTRUCTION);
+                    }
+                    break;
+                case AcceleratorState.UNDER_CONSTRUCTION:
+                    disableDampers();
+                    if(constructionProgress < 1)
+                    {
+                        constructionProgress += TimeWarp.deltaTime / 10;
+                        if(constructionProgress > 1)
+                            constructionProgress = 1;
+                        UpdateParams();
+                    }
+                    else
+                    {
+                        numSegments += 1;
+                        constructionProgress = -1;
+                        if(updateScaffold() && updateSegments())
                         {
-                            constructionProgress += TimeWarp.deltaTime / 10;
                             UpdateParams();
+                            changeState(AcceleratorState.IDLE);
+                            BuildSegment = false;
+                            break;
                         }
-                        else
-                        {
-                            numSegments += 1;
-                            constructionProgress = deploymentProgress = -1;
-                            if(updateScaffold() && updateSegments())
-                            {
-                                UpdateParams();
-                                changeState(AcceleratorState.IDLE);
-                                BuildSegment = false;
-                                break;
-                            }
-                            numSegments = barrelSegments.Count;
-                            constructionProgress = deploymentProgress = 1;
-                        }
+                        numSegments = barrelSegments.Count;
+                        constructionProgress = 1;
                     }
                     break;
                 case AcceleratorState.IDLE:
@@ -978,12 +998,8 @@ energy: {energy}";
         #region Segments
         private void buildSegment(object value)
         {
-            if(State != AcceleratorState.IDLE)
-            {
+            if(!startConstruction())
                 BuildSegment = false;
-                return;
-            }
-            changeState(AcceleratorState.UNDER_CONSTRUCTION);
         }
 
         private void onNumSegmentsChange(object value)
