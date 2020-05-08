@@ -40,6 +40,7 @@ namespace CargoAccelerators
         [KSPField] public float SegmentCost;
         [KSPField] public Vector3 SegmentCoM;
         [KSPField] public Vector3 ScaffoldStartScale = new Vector3(1, 1, 0.01f);
+        [KSPField] public float ScaffoldDeployTime = 60f;
 
         [KSPField(isPersistant = true,
             guiActive = true,
@@ -350,7 +351,7 @@ namespace CargoAccelerators
                     disableDampers();
                     if(deploymentProgress < 1)
                     {
-                        deploymentProgress += TimeWarp.deltaTime / 10;
+                        deploymentProgress += TimeWarp.deltaTime / ScaffoldDeployTime;
                         if(deploymentProgress > 1)
                             deploymentProgress = 1;
                         updateScaffold();
@@ -1249,6 +1250,7 @@ energy: {energy}";
         {
             mp.module.SegmentMass = mp.base_module.SegmentMass * scale.absolute.volume;
             mp.module.SegmentCost = mp.base_module.SegmentCost * scale.absolute.volume;
+            mp.module.ScaffoldDeployTime = mp.base_module.ScaffoldDeployTime * scale.absolute.volume;
             mp.module.UpdateParams();
         }
     }
