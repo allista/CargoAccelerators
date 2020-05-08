@@ -1156,8 +1156,10 @@ energy: {energy}";
             {
                 vesselSize = vessel.Bounds().size.magnitude;
                 vessel.SetUnpackDistance(vesselSize * 2);
+                GameEvents.onVesselWasModified.Fire(vessel);
             }
-            GameEvents.onVesselWasModified.Fire(vessel);
+            else
+                GameEvents.onEditorShipModified.Fire(EditorLogic.fetch.ship);
 #if DEBUG
             StartCoroutine(CallbackUtil.DelayedCallback(1,
                 () =>
