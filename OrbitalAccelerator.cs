@@ -47,17 +47,10 @@ namespace CargoAccelerators
         [UI_FloatRange(scene = UI_Scene.All, minValue = 0, maxValue = 20, stepIncrement = 1)]
         public float numSegments;
 
-        [KSPField(isPersistant = true,
-            guiActive = true,
-            guiActiveEditor = true,
-            guiName = "Construction",
-            guiFormat = "P1")]
-        [UI_FloatRange(scene = UI_Scene.All, minValue = -0.1f, maxValue = 1.1f, stepIncrement = 0.1f)]
-        public float constructionSlider = -0.1f;
-
         [KSPField(isPersistant = true)] public AcceleratorState State = AcceleratorState.IDLE;
         [KSPField(isPersistant = true)] public bool AutoAlignEnabled;
-        [KSPField(isPersistant = true)] public float ConstructionProgress = -1;
+        [KSPField(isPersistant = true)] private float deploymentProgress = -1;
+        [KSPField(isPersistant = true)] private float constructionProgress = -1;
 
         [KSPField(isPersistant = true,
             guiName = "Accelerator Controls",
@@ -77,6 +70,15 @@ namespace CargoAccelerators
             guiUnits = "t",
             guiFormat = "F1")]
         public float VesselMass;
+
+        [KSPField(isPersistant = true,
+            guiName = "Build next segment",
+            guiActive = true,
+            guiActiveEditor = true,
+            guiActiveUnfocused = true,
+            unfocusedRange = 50)]
+        [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Constructing", disabledText = "Operational")]
+        public bool BuildSegment;
 #endif
 
         private AxisAttitudeController axisController;
@@ -178,9 +180,8 @@ namespace CargoAccelerators
                 numSegmentsControlEditor.maxValue = MaxSegments;
             if(numSegmentsField.uiControlFlight is UI_FloatRange numSegmentsControlFlight)
                 numSegmentsControlFlight.maxValue = MaxSegments;
-            var constructionSliderField = Fields[nameof(constructionSlider)];
-            constructionSliderField.OnValueModified += onConstructionChange;
             Fields[nameof(ShowUI)].OnValueModified += showUI;
+            Fields[nameof(BuildSegment)].OnValueModified += buildSegment;
             axisController = new AxisAttitudeController(this);
             UI = new AcceleratorWindow(this);
             if(ShowUI)
@@ -330,6 +331,40 @@ namespace CargoAccelerators
                         loadingDamper.EnableDamper(false);
                     if(launchingDamper.DamperEnabled)
                         launchingDamper.EnableDamper(false);
+                    if(deploymentProgress < 0)
+                    {
+                        deploymentProgress = 0;
+                        updateScaffold();
+                    }
+                    else if(deploymentProgress < 1)
+                    {
+                        deploymentProgress += TimeWarp.deltaTime / 10;
+                        updateScaffold();
+                    }
+                    else
+                    {
+                        if(constructionProgress < 0)
+                            constructionProgress = 0;
+                        else if(constructionProgress < 1)
+                        {
+                            constructionProgress += TimeWarp.deltaTime / 10;
+                            UpdateParams();
+                        }
+                        else
+                        {
+                            numSegments += 1;
+                            constructionProgress = deploymentProgress = -1;
+                            if(updateScaffold() && updateSegments())
+                            {
+                                UpdateParams();
+                                changeState(AcceleratorState.IDLE);
+                                BuildSegment = false;
+                                break;
+                            }
+                            numSegments = barrelSegments.Count;
+                            constructionProgress = deploymentProgress = 1;
+                        }
+                    }
                     break;
                 case AcceleratorState.IDLE:
                     if(launchParams != null)
@@ -941,39 +976,14 @@ energy: {energy}";
         #endregion
 
         #region Segments
-        private void onConstructionChange(object value)
+        private void buildSegment(object value)
         {
-            if(constructionSlider < 0)
+            if(State != AcceleratorState.IDLE)
             {
-                changeState(AcceleratorState.IDLE);
+                BuildSegment = false;
+                return;
             }
-            else if(constructionSlider <= 1)
-            {
-                if(ConstructionProgress < 0 && State != AcceleratorState.IDLE)
-                {
-                    constructionSlider = ConstructionProgress;
-                    return;
-                }
-                changeState(AcceleratorState.UNDER_CONSTRUCTION);
-            }
-            else
-            {
-                changeState(AcceleratorState.IDLE);
-                numSegments = barrelSegments.Count + 1;
-                if(!updateSegments())
-                {
-                    numSegments = barrelSegments.Count;
-                    constructionSlider = ConstructionProgress;
-                    return;
-                }
-                constructionSlider = -0.1f;
-            }
-            var prevProgress = ConstructionProgress;
-            ConstructionProgress = constructionSlider;
-            if(updateScaffold())
-                UpdateParams();
-            else
-                constructionSlider = prevProgress;
+            changeState(AcceleratorState.UNDER_CONSTRUCTION);
         }
 
         private void onNumSegmentsChange(object value)
@@ -1066,7 +1076,7 @@ energy: {energy}";
 
         private bool updateScaffold()
         {
-            if(ConstructionProgress < 0)
+            if(deploymentProgress < 0)
             {
                 if(segmentScaffold == null)
                     return true;
@@ -1088,7 +1098,7 @@ energy: {energy}";
                     segmentScaffold.SetActive(true);
                 }
                 segmentScaffold.transform.localScale =
-                    Vector3.Lerp(ScaffoldStartScale, Vector3.one, ConstructionProgress);
+                    Vector3.Lerp(ScaffoldStartScale, Vector3.one, deploymentProgress);
                 segmentScaffold.transform.hasChanged = true;
             }
             return true;
@@ -1105,7 +1115,7 @@ energy: {energy}";
         private void updateCoMOffset()
         {
             part.CoMOffset = Vector3.zero;
-            if(barrelSegments.Count == 0 && ConstructionProgress <= 0)
+            if(barrelSegments.Count == 0 && constructionProgress <= 0)
                 return;
             part.UpdateMass();
             var ori = part.partTransform.position;
@@ -1114,13 +1124,13 @@ energy: {energy}";
                 (current, segment) =>
                     current
                     + (segment.segmentGO.transform.TransformPoint(SegmentCoM) - ori) * SegmentMass);
-            if(ConstructionProgress > 0)
+            if(constructionProgress > 0)
             {
                 var growthPoint = barrelSegments.Count > 0
                     ? barrelSegments[barrelSegments.Count - 1].segmentGO.transform
                     : barrelAttachmentTransform;
                 CoM += growthPoint.TransformPoint(SegmentCoM)
-                       * (SegmentMass * ConstructionProgress * ConstructionProgress);
+                       * (SegmentMass * constructionProgress);
             }
             part.CoMOffset = part.partTransform.InverseTransformDirection(CoM / part.mass);
         }
@@ -1166,8 +1176,8 @@ energy: {energy}";
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            if(ConstructionProgress > 0)
-                return (barrelSegments.Count + ConstructionProgress) * SegmentMass;
+            if(constructionProgress > 0)
+                return (barrelSegments.Count + constructionProgress) * SegmentMass;
             return barrelSegments.Count * SegmentMass;
         }
 
@@ -1175,8 +1185,8 @@ energy: {energy}";
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            if(ConstructionProgress > 0)
-                return (barrelSegments.Count + ConstructionProgress) * SegmentCost;
+            if(constructionProgress > 0)
+                return (barrelSegments.Count + constructionProgress) * SegmentCost;
             return barrelSegments.Count * SegmentCost;
         }
 
