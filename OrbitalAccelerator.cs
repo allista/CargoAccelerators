@@ -355,6 +355,7 @@ namespace CargoAccelerators
                         if(deploymentProgress > 1)
                             deploymentProgress = 1;
                         updateScaffold();
+                        updateVesselSize();
                     }
                     else
                     {
@@ -370,7 +371,7 @@ namespace CargoAccelerators
                         constructionProgress += TimeWarp.deltaTime / 10;
                         if(constructionProgress > 1)
                             constructionProgress = 1;
-                        UpdateParams();
+                        updatePhysicsParams();
                     }
                     else
                     {
@@ -1156,27 +1157,38 @@ energy: {energy}";
             "inertiaTensor",
             BindingFlags.Instance | BindingFlags.NonPublic);
 
+        private Coroutine inertiaTensorUpdater;
+
         private void updateInertiaTensor()
         {
-            if(part.rb == null)
-                return;
-            part.rb.ResetInertiaTensor();
-            var inertiaTensor = part.rb.inertiaTensor / Mathf.Max(1f, part.rb.mass);
-            partInertiaTensorFI.SetValue(part, inertiaTensor);
+            if(part.rb != null)
+            {
+                part.rb.ResetInertiaTensor();
+                var inertiaTensor = part.rb.inertiaTensor / Mathf.Max(1f, part.rb.mass);
+                partInertiaTensorFI.SetValue(part, inertiaTensor);
+            }
+            inertiaTensorUpdater = null;
         }
 
-        public void UpdateParams()
+        private void delayedUpdateInertiaTensor()
+        {
+            if(inertiaTensorUpdater != null)
+                return;
+            inertiaTensorUpdater = StartCoroutine(CallbackUtil.DelayedCallback(1, updateInertiaTensor));
+        }
+
+        private void updateVesselSize()
+        {
+            if(vessel == null)
+                return;
+            vesselSize = vessel.Bounds().size.magnitude;
+            vessel.SetUnpackDistance(vesselSize * 2);
+        }
+
+        private void updatePhysicsParams()
         {
             updateCoMOffset();
-            StartCoroutine(CallbackUtil.DelayedCallback(1, updateInertiaTensor));
-            if(vessel != null)
-            {
-                vesselSize = vessel.Bounds().size.magnitude;
-                vessel.SetUnpackDistance(vesselSize * 2);
-                GameEvents.onVesselWasModified.Fire(vessel);
-            }
-            else
-                GameEvents.onEditorShipModified.Fire(EditorLogic.fetch.ship);
+            delayedUpdateInertiaTensor();
 #if DEBUG
             StartCoroutine(CallbackUtil.DelayedCallback(1,
                 () =>
@@ -1190,6 +1202,14 @@ energy: {energy}";
             this.Log("CoM offset: {}", part.CoMOffset);
             this.Log($"vessel size: {vesselSize}");
 #endif
+        }
+
+        public void UpdateParams()
+        {
+            updateVesselSize();
+            updatePhysicsParams();
+            if(HighLogic.LoadedSceneIsEditor)
+                GameEvents.onEditorShipModified.Fire(EditorLogic.fetch.ship);
         }
         #endregion
 
