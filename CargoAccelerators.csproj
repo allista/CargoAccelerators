@@ -83,7 +83,12 @@
         <Compile Include="ExtensibleRCS.cs" />
         <Compile Include="ExtensibleMagneticDamper.cs" />
         <Compile Include="Globals.cs" />
-        <Compile Include="OrbitalAccelerator.cs" />
+        <Compile Include="OrbitalAccelerator\interfaces.cs" />
+        <Compile Include="OrbitalAccelerator\launch.cs" />
+        <Compile Include="OrbitalAccelerator\segments.cs" />
+        <Compile Include="OrbitalAccelerator\main.cs" />
+        <Compile Include="OrbitalAccelerator\state.cs" />
+        <Compile Include="OrbitalAccelerator\ui.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="UI\AcceleratorWindow.cs" />
     </ItemGroup>
