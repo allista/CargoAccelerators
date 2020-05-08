@@ -169,10 +169,8 @@ namespace CargoAccelerators
                     + (segment.segmentGO.transform.TransformPoint(SegmentCoM) - ori) * SegmentMass);
             if(constructionProgress > 0)
             {
-                var growthPoint = barrelSegments.Count > 0
-                    ? barrelSegments[barrelSegments.Count - 1].segmentGO.transform
-                    : barrelAttachmentTransform;
-                CoM += growthPoint.TransformPoint(SegmentCoM)
+                var attachmentPoint = getAttachmentTransform();
+                CoM += (attachmentPoint.TransformPoint(SegmentCoM) - ori)
                        * (SegmentMass * constructionProgress);
             }
             part.CoMOffset = part.partTransform.InverseTransformDirection(CoM / part.mass);
