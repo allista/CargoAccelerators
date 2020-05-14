@@ -1,4 +1,4 @@
-﻿using AT_Utils;
+using AT_Utils;
 using CargoAccelerators.UI;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -73,7 +73,11 @@ namespace CargoAccelerators
         public override void OnAwake()
         {
             base.OnAwake();
-            findTransforms();
+            if(!findTransforms())
+            {
+                this.ConfigurationInvalid("Unable to find all required model components");
+                return;
+            }
             GameEvents.onVesselWasModified.Add(onVesselWasModified);
         }
 
@@ -103,11 +107,6 @@ namespace CargoAccelerators
             this.Log(
                 $"prefab model tree: {DebugUtils.formatTransformTree(part.partInfo.partPrefab.transform)}");
 #endif
-            if(!findTransforms())
-            {
-                this.EnableModule(false);
-                return;
-            }
             loadingDamper = ATMagneticDamper.GetDamper(part, LoadingDamperID);
             if(loadingDamper == null)
             {
