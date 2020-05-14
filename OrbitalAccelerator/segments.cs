@@ -127,32 +127,60 @@ namespace CargoAccelerators
             return true;
         }
 
-        private bool updateScaffold()
+        private bool updateScaffold(float newDeploymentProgress)
         {
-            if(deploymentProgress < 0)
+            if(newDeploymentProgress < 0)
             {
-                if(segmentScaffold == null)
-                    return true;
-                if(HighLogic.LoadedSceneIsFlight)
-                    FXMonger.Explode(part, segmentScaffold.transform.position, 0);
-                Destroy(segmentScaffold);
-                segmentScaffold = null;
+                if(segmentScaffold != null)
+                {
+                    if(!removeDockingNode())
+                        return false;
+                    if(HighLogic.LoadedSceneIsFlight)
+                        FXMonger.Explode(part, segmentScaffold.transform.position, 0);
+                    Destroy(segmentScaffold);
+                    segmentScaffold = null;
+                    resetRendererCaches();
+                }
             }
             else
             {
                 if(segmentScaffold == null)
                 {
+                    this.Debug($"Creating new scaffold");
                     var attachmentPoint = getAttachmentTransform();
                     if(attachmentPoint == null)
                         return false;
                     segmentScaffold = Instantiate(segmentScaffoldPrefab, attachmentPoint, false);
                     segmentScaffold.transform.localPosition = Vector3.zero;
                     segmentScaffold.transform.localRotation = Quaternion.identity;
+                    if(!string.IsNullOrEmpty(constructionPortTransformPrefabName))
+                    {
+                        var dockingNode =
+                            Part.FindHeirarchyTransform(segmentScaffold.transform, constructionPortTransformPrefabName);
+                        if(dockingNode != null)
+                        {
+                            dockingNode.gameObject.name = constructionPortTransformName;
+                        }
+                        else
+                            this.Error($"Unable to find {constructionPortTransformPrefabName} transform");
+                    }
                     segmentScaffold.SetActive(true);
+                    resetRendererCaches();
+                    this.Debug($"Scaffold instance tree: {DebugUtils.formatTransformTree(segmentScaffold.transform)}");
                 }
+                if(newDeploymentProgress < 1 && !removeDockingNode())
+                    return false;
+                if(newDeploymentProgress >= 1)
+                    newDeploymentProgress = 1;
                 segmentScaffold.transform.localScale =
-                    Vector3.Lerp(ScaffoldStartScale, Vector3.one, deploymentProgress);
+                    Vector3.Lerp(ScaffoldStartScale, Vector3.one, newDeploymentProgress);
                 segmentScaffold.transform.hasChanged = true;
+            }
+            deploymentProgress = newDeploymentProgress;
+            if(deploymentProgress >= 1)
+            {
+                this.Debug($"Deployment finished. Docking node: {constructionPort.GetID()}");
+                setupDockingNode();
             }
             return true;
         }

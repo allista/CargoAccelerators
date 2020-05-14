@@ -105,6 +105,15 @@ namespace CargoAccelerators
             unfocusedRange = 50)]
         [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Constructing", disabledText = "Operational")]
         public bool BuildSegment;
+        
+        [KSPField(isPersistant = true,
+            guiName = "Allow construction",
+            guiActive = true,
+            guiActiveEditor = true,
+            guiActiveUnfocused = true,
+            unfocusedRange = 50)]
+        [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Constructing", disabledText = "Waiting")]
+        public bool AllowConstruction;
 
         [KSPEvent(active = true, guiActive = true, guiName = "Reload CA Globals")]
         public void ReloadGlobals()

@@ -5,7 +5,8 @@ using UnityEngine;
 
 namespace CargoAccelerators
 {
-    public partial class OrbitalAccelerator : PartModule, IPartMassModifier, IPartCostModifier, ITargetable
+    public partial class OrbitalAccelerator : SerializableFiledsPartModule, IPartMassModifier, IPartCostModifier,
+        ITargetable
     {
         private static Globals GLB => Globals.Instance;
 
@@ -100,7 +101,19 @@ namespace CargoAccelerators
             axisController = null;
             UI?.Close();
         }
-        
+
+        public override void OnLoad(ConfigNode node)
+        {
+            base.OnLoad(node);
+            loadDockingPortConfig(node);
+        }
+
+        public override void OnSave(ConfigNode node)
+        {
+            base.OnSave(node);
+            saveDockingPortState(node);
+        }
+
         public override void OnStart(StartState state)
         {
             base.OnStart(state);

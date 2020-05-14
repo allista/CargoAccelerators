@@ -52,21 +52,20 @@ namespace CargoAccelerators
                     disableDampers();
                     if(deploymentProgress < 1)
                     {
-                        deploymentProgress += TimeWarp.deltaTime / ScaffoldDeployTime;
-                        if(deploymentProgress > 1)
-                            deploymentProgress = 1;
-                        updateScaffold();
+                        updateScaffold(deploymentProgress + TimeWarp.deltaTime / ScaffoldDeployTime);
                         updateVesselSize();
                     }
                     else
                     {
-                        deploymentProgress = -1;
                         constructionProgress = 0;
+                        AllowConstruction = false;
                         changeState(AcceleratorState.UNDER_CONSTRUCTION);
                     }
                     break;
                 case AcceleratorState.UNDER_CONSTRUCTION:
                     disableDampers();
+                    if(!AllowConstruction)
+                        break;
                     if(constructionProgress < 1)
                     {
                         constructionProgress += TimeWarp.deltaTime / 10;
@@ -78,13 +77,15 @@ namespace CargoAccelerators
                     {
                         numSegments += 1;
                         constructionProgress = -1;
-                        if(updateScaffold() && updateSegments())
+                        if(updateScaffold(-1) && updateSegments())
                         {
                             UpdateParams();
                             changeState(AcceleratorState.IDLE);
                             BuildSegment = false;
+                            AllowConstruction = false;
                             break;
                         }
+                        AllowConstruction = false;
                         numSegments = barrelSegments.Count;
                         constructionProgress = 1;
                     }
