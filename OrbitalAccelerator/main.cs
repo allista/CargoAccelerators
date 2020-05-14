@@ -84,6 +84,7 @@ namespace CargoAccelerators
         private void OnDestroy()
         {
             if(vessel != null
+               && vessel.gameObject.activeInHierarchy
                && FlightGlobals.fetch != null
                && ReferenceEquals(FlightGlobals.fetch.VesselTarget, this))
             {
