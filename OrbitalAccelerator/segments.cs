@@ -14,7 +14,7 @@ namespace CargoAccelerators
             guiName = "Segments")]
         [UI_FloatRange(scene = UI_Scene.All, minValue = 0, maxValue = 20, stepIncrement = 1)]
         public float numSegments;
-        
+
         private struct BarrelSegment
         {
             public GameObject segmentGO;
@@ -22,7 +22,7 @@ namespace CargoAccelerators
         }
 
         private readonly List<BarrelSegment> barrelSegments = new List<BarrelSegment>();
-        
+
         private void buildSegment(object value)
         {
             if(!startConstruction())

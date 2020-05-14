@@ -1,4 +1,4 @@
-using AT_Utils;
+﻿using AT_Utils;
 using CargoAccelerators.UI;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -151,14 +151,14 @@ namespace CargoAccelerators
                 UI.Show(this);
             UpdateParams();
         }
-        
+
         private void onVesselWasModified(Vessel vsl)
         {
             if(axisController == null || vsl != vessel || vsl == null)
                 return;
             axisController.UpdateTorqueProviders();
         }
-        
+
         /// <summary>
         /// It is a component message handler.
         /// The "DisableAttitudeControl" message is sent from TCA mod when
