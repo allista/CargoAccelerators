@@ -111,30 +111,19 @@ namespace CargoAccelerators
             loadingDamper = ATMagneticDamper.GetDamper(part, LoadingDamperID);
             if(loadingDamper == null)
             {
-                this.Log($"Unable to find loading damper with ID {LoadingDamperID}");
-                this.EnableModule(false);
+                this.ConfigurationInvalid($"Unable to find loading damper with ID {LoadingDamperID}");
                 return;
             }
             launchingDamper =
                 ATMagneticDamper.GetDamper(part, LaunchingDamperID) as ExtensibleMagneticDamper;
             if(launchingDamper == null)
             {
-                this.Log($"Unable to find launching damper with ID {LoadingDamperID}");
-                this.EnableModule(false);
+                this.ConfigurationInvalid($"Unable to find launching damper with ID {LoadingDamperID}");
                 return;
             }
             launchingAttractorOrigPower = launchingDamper.AttractorPower;
-            if(!updateSegments())
-            {
-                this.EnableModule(false);
-                return;
-            }
-            if(!updateScaffold())
-            {
-                this.EnableModule(false);
-                return;
-            }
-            UpdateParams();
+            if(!updateSegments() || !updateScaffold(deploymentProgress))
+                this.ConfigurationInvalid("Unable to initialize dynamic model components");
             var numSegmentsField = Fields[nameof(numSegments)];
             numSegmentsField.OnValueModified += onNumSegmentsChange;
             if(numSegmentsField.uiControlEditor is UI_FloatRange numSegmentsControlEditor)
@@ -147,6 +136,7 @@ namespace CargoAccelerators
             UI = new AcceleratorWindow(this);
             if(ShowUI)
                 UI.Show(this);
+            UpdateParams();
         }
         
         private void onVesselWasModified(Vessel vsl)
