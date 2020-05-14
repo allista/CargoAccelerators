@@ -77,7 +77,7 @@ namespace CargoAccelerators
                     var newSegment = Instantiate(barrelSegmentPrefab, attachmentPoint, false);
                     if(newSegment == null)
                     {
-                        this.Log($"Unable to instantiate {barrelSegmentPrefab.GetID()}");
+                        this.Error($"Unable to instantiate {barrelSegmentPrefab.GetID()}");
                         return false;
                     }
                     var newSegmentSensor =
@@ -85,7 +85,7 @@ namespace CargoAccelerators
                             SegmentSensorTransform);
                     if(newSegmentSensor == null)
                     {
-                        this.Log(
+                        this.Error(
                             $"Unable to find {SegmentSensorTransform} transform in {barrelSegmentPrefab.GetID()}");
                         Destroy(newSegment);
                         return false;
@@ -94,7 +94,7 @@ namespace CargoAccelerators
                     newSegment.transform.localRotation = Quaternion.identity;
                     if(!launchingDamper.AddDamperExtension(newSegmentSensor))
                     {
-                        this.Log($"Unable to add damper extension to {newSegmentSensor.GetID()}");
+                        this.Error($"Unable to add damper extension to {newSegmentSensor.GetID()}");
                         Destroy(newSegment);
                         return false;
                     }

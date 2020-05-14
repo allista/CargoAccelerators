@@ -47,7 +47,7 @@ namespace CargoAccelerators
             var T = part.FindModelTransform(SegmentTransform);
             if(T == null)
             {
-                this.Log($"Unable to find {SegmentTransform} model transform");
+                this.Error($"Unable to find {SegmentTransform} model transform");
                 success = false;
             }
             barrelSegmentPrefab = T.gameObject;
@@ -55,7 +55,7 @@ namespace CargoAccelerators
             T = part.FindModelTransform(BarrelAttachmentTransform);
             if(T == null)
             {
-                this.Log($"Unable to find {BarrelAttachmentTransform} model transform");
+                this.Error($"Unable to find {BarrelAttachmentTransform} model transform");
                 success = false;
             }
             barrelAttachmentTransform = T;
@@ -66,7 +66,7 @@ namespace CargoAccelerators
                 segmentScaffoldPrefab.SetActive(false);
             }
             else
-                this.Log($"Unable to find {ScaffoldTransform} model transform");
+                this.Error($"Unable to find {ScaffoldTransform} model transform");
             return success;
         }
 
@@ -105,7 +105,7 @@ namespace CargoAccelerators
         {
             base.OnStart(state);
 #if DEBUG
-            this.Log(
+            this.Debug(
                 $"prefab model tree: {DebugUtils.formatTransformTree(part.partInfo.partPrefab.transform)}");
 #endif
             loadingDamper = ATMagneticDamper.GetDamper(part, LoadingDamperID);
