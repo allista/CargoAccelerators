@@ -41,11 +41,15 @@ namespace CargoAccelerators
             moduleIndex = part.Modules.IndexOf(this);
             if(!HighLogic.LoadedSceneIsFlight)
                 return;
-            otherNode = FindOtherNode();
-            if(otherNode == null)
-                return;
-            otherNode.otherNode = this;
-            otherNode.dockingNodeModuleIndex = part.Modules.IndexOf(this);
+            if(dockedPartUId != 0)
+            {
+                otherNode = FindOtherNode();
+                if(otherNode != null)
+                {
+                    otherNode.otherNode = this;
+                    otherNode.dockingNodeModuleIndex = part.Modules.IndexOf(this);
+                }
+            }
             base.OnStart(st);
         }
 
