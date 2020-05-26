@@ -84,6 +84,7 @@ namespace CargoAccelerators
             {
                 part.Error($"Module {dockingPort.GetID()} was not initialized: {ex}");
                 part.Modules.Remove(dockingPort);
+                part.dockingPorts.Remove(dockingPort);
                 Destroy(dockingPort);
                 return null;
             }
