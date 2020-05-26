@@ -243,7 +243,7 @@ namespace CargoAccelerators
             if(vessel == null)
                 return;
             vesselSize = vessel.Bounds().size.magnitude;
-            vessel.SetUnpackDistance(vesselSize * 2);
+            vessel.SetUnpackDistance(vesselSize * 10, true);
         }
 
         private void updatePhysicsParams()
