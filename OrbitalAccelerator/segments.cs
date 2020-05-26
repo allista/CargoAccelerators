@@ -258,10 +258,7 @@ namespace CargoAccelerators
                         VesselMass = vessel.GetTotalMass();
                     else if(HighLogic.LoadedSceneIsEditor)
                         VesselMass = EditorLogic.fetch.ship.GetTotalMass();
-                    this.Log($"vessel mass: {VesselMass}");
                 }));
-            this.Log("CoM offset: {}", part.CoMOffset);
-            this.Log($"vessel size: {vesselSize}");
 #endif
         }
 
