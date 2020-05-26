@@ -76,6 +76,7 @@ namespace CargoAccelerators
                 return false;
             Destroy(constructionPort);
             constructionPort = null;
+            dockingNodeSave = null;
             return true;
         }
     }
