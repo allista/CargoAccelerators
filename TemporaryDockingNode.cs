@@ -12,33 +12,8 @@ namespace CargoAccelerators
 {
     public class TemporaryDockingNode : NamedDockingNode
     {
-        private int moduleIndex = -1;
-
-        protected override void OnDestroy()
-        {
-            if(moduleIndex >= 0 && FlightGlobals.fetch != null && part != null && vessel != null)
-            {
-                foreach(var vsl in FlightGlobals.Vessels)
-                {
-                    var targetInfo = vsl.protoVessel?.targetInfo;
-                    if(targetInfo == null
-                       || targetInfo.targetType != ProtoTargetInfo.Type.PartModule
-                       || targetInfo.partUID != part.flightID)
-                        continue;
-                    if(targetInfo.partModuleIndex < part.Modules.Count
-                       && part.Modules[targetInfo.partModuleIndex] != this)
-                        continue;
-                    vsl.protoVessel.targetInfo = new ProtoTargetInfo(vessel);
-                    vsl.targetObject = vessel;
-                    this.Debug($"Unset {this.GetID()} as the target of the {vsl.GetID()}");
-                }
-            }
-            base.OnDestroy();
-        }
-
         public override void OnStart(StartState st)
         {
-            moduleIndex = part.Modules.IndexOf(this);
             if(!HighLogic.LoadedSceneIsFlight)
                 return;
             if(dockedPartUId != 0)
@@ -101,6 +76,24 @@ namespace CargoAccelerators
                     ? $"Undock the \"{otherNode.vesselInfo.name}\""
                     : $"\"{otherNode.vessel.vesselName}\" is too close");
                 return false;
+            }
+            foreach(var vsl in FlightGlobals.Vessels)
+            {
+                if(ReferenceEquals(vsl.targetObject, this))
+                    vsl.targetObject = vessel;
+                var targetInfo = vsl.protoVessel?.targetInfo;
+                if(targetInfo == null
+                   || targetInfo.targetType != ProtoTargetInfo.Type.PartModule
+                   || targetInfo.partUID != part.flightID)
+                    continue;
+                if(targetInfo.partModuleIndex < part.Modules.Count
+                   && part.Modules[targetInfo.partModuleIndex] != this)
+                    continue;
+                vsl.targetObject = vessel;
+                vsl.protoVessel.targetInfo = new ProtoTargetInfo(vessel);
+                vsl.pTI = new ProtoTargetInfo(vsl.protoVessel.targetInfo);
+                if(FlightGlobals.fetch != null && FlightGlobals.ActiveVessel == vsl)
+                    FlightGlobals.fetch.SetVesselTarget(vsl.targetObject, true);
             }
             part.Modules.Remove(this);
             part.dockingPorts.Remove(this);
