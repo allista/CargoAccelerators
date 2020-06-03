@@ -89,7 +89,6 @@ namespace CargoAccelerators.UI
             switch(accelerator.State)
             {
                 case OrbitalAccelerator.AcceleratorState.UNDER_CONSTRUCTION:
-                case OrbitalAccelerator.AcceleratorState.DEPLOY_SCAFFOLD:
                     Controller.status.text = "Accelerator is under construction";
                     Controller.status.color = Colors.Warning;
                     Controller.acquirePayloadButton.SetInteractable(false);

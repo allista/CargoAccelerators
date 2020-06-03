@@ -78,17 +78,6 @@ namespace CargoAccelerators
             changeState(AcceleratorState.LAUNCH);
         }
 
-        private bool startConstruction()
-        {
-            if(State != AcceleratorState.IDLE)
-                return false;
-            UI.ClearMessages();
-            deploymentProgress = 0;
-            constructionProgress = -1;
-            changeState(AcceleratorState.DEPLOY_SCAFFOLD);
-            return true;
-        }
-
 #if DEBUG
         [KSPField(guiActive = true,
             guiActiveEditor = true,
@@ -96,24 +85,6 @@ namespace CargoAccelerators
             guiUnits = "t",
             guiFormat = "F1")]
         public float VesselMass;
-
-        [KSPField(isPersistant = true,
-            guiName = "Build next segment",
-            guiActive = true,
-            guiActiveEditor = true,
-            guiActiveUnfocused = true,
-            unfocusedRange = 50)]
-        [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Constructing", disabledText = "Operational")]
-        public bool BuildSegment;
-        
-        [KSPField(isPersistant = true,
-            guiName = "Allow construction",
-            guiActive = true,
-            guiActiveEditor = true,
-            guiActiveUnfocused = true,
-            unfocusedRange = 50)]
-        [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Constructing", disabledText = "Waiting")]
-        public bool AllowConstruction;
 
         [KSPEvent(active = true, guiActive = true, guiName = "Reload CA Globals")]
         public void ReloadGlobals()

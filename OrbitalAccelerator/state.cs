@@ -13,8 +13,7 @@ namespace CargoAccelerators
             EJECT,
             LAUNCH,
             ABORT,
-            DEPLOY_SCAFFOLD,
-            UNDER_CONSTRUCTION
+            UNDER_CONSTRUCTION,
         }
         
         private void changeState(AcceleratorState newState)
@@ -48,47 +47,9 @@ namespace CargoAccelerators
             launchingDamper.InvertAttractor = true;
             switch(State)
             {
-                case AcceleratorState.DEPLOY_SCAFFOLD:
-                    disableDampers();
-                    if(deploymentProgress < 1)
-                    {
-                        updateScaffold(deploymentProgress + TimeWarp.deltaTime / ScaffoldDeployTime);
-                        updateVesselSize();
-                    }
-                    else
-                    {
-                        constructionProgress = 0;
-                        AllowConstruction = false;
-                        changeState(AcceleratorState.UNDER_CONSTRUCTION);
-                    }
-                    break;
                 case AcceleratorState.UNDER_CONSTRUCTION:
                     disableDampers();
-                    if(!AllowConstruction)
-                        break;
-                    if(constructionProgress < 1)
-                    {
-                        constructionProgress += TimeWarp.deltaTime / 10;
-                        if(constructionProgress > 1)
-                            constructionProgress = 1;
-                        updatePhysicsParams();
-                    }
-                    else
-                    {
-                        numSegments += 1;
-                        constructionProgress = -1;
-                        if(updateScaffold(-1) && updateSegments())
-                        {
-                            UpdateParams();
-                            changeState(AcceleratorState.IDLE);
-                            BuildSegment = false;
-                            AllowConstruction = false;
-                            break;
-                        }
-                        AllowConstruction = false;
-                        numSegments = barrelSegments.Count;
-                        constructionProgress = 1;
-                    }
+                    constructionUpdate();
                     break;
                 case AcceleratorState.IDLE:
                     if(launchParams != null)
@@ -163,6 +124,7 @@ namespace CargoAccelerators
                     }
                     break;
             }
+            constructionFixedUpdate();
         }
 
         private void LateUpdate()

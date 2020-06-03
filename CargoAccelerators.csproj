@@ -83,6 +83,7 @@
         <Compile Include="ExtensibleRCS.cs" />
         <Compile Include="ExtensibleMagneticDamper.cs" />
         <Compile Include="Globals.cs" />
+        <Compile Include="OrbitalAccelerator\construction.cs" />
         <Compile Include="OrbitalAccelerator\docking.cs" />
         <Compile Include="OrbitalAccelerator\interfaces.cs" />
         <Compile Include="OrbitalAccelerator\launch.cs" />
@@ -125,6 +126,9 @@
     </ItemGroup>
     <ItemGroup>
         <Folder Include="GameData\CargoAccelerators\Plugins" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="GameData\CargoAccelerators\Engineer.cfg" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

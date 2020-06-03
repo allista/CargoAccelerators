@@ -23,18 +23,11 @@ namespace CargoAccelerators
 
         private readonly List<BarrelSegment> barrelSegments = new List<BarrelSegment>();
 
-        private void buildSegment(object value)
-        {
-            if(!startConstruction())
-                BuildSegment = false;
-        }
-
         private void onNumSegmentsChange(object value)
         {
             if(State == AcceleratorState.IDLE)
             {
-                numSegments = (int)numSegments;
-                if(updateSegments())
+                if(updateSegments((int)numSegments))
                 {
                     UpdateParams();
                     return;
@@ -70,15 +63,14 @@ namespace CargoAccelerators
             part.ResetModelRenderersCache();
         }
 
-        private bool updateSegments()
+        private bool updateSegments(int newSegments)
         {
             var haveSegments = barrelSegments.Count;
-            var numSegments_i = (int)numSegments;
-            if(numSegments_i == haveSegments)
+            if(newSegments == haveSegments)
                 return true;
-            if(numSegments_i > haveSegments)
+            if(newSegments > haveSegments)
             {
-                for(var i = haveSegments; i < numSegments_i; i++)
+                for(var i = haveSegments; i < newSegments; i++)
                 {
                     var attachmentPoint = getAttachmentTransform();
                     if(attachmentPoint == null)
@@ -114,7 +106,7 @@ namespace CargoAccelerators
             }
             else
             {
-                for(var i = haveSegments - 1; i >= numSegments_i; i--)
+                for(var i = haveSegments - 1; i >= newSegments; i--)
                 {
                     var segment = barrelSegments[i];
                     launchingDamper.RemoveDamperExtension(segment.segmentSensor);
@@ -122,6 +114,7 @@ namespace CargoAccelerators
                     barrelSegments.RemoveAt(i);
                 }
             }
+            numSegments = barrelSegments.Count;
             resetRendererCaches();
             StartCoroutine(delayedUpdateRCS());
             return true;
@@ -196,7 +189,7 @@ namespace CargoAccelerators
         private void updateCoMOffset()
         {
             part.CoMOffset = Vector3.zero;
-            if(barrelSegments.Count == 0 && constructionProgress <= 0)
+            if(barrelSegments.Count == 0 && constructedMass <= 0)
                 return;
             part.UpdateMass();
             var ori = part.partTransform.position;
@@ -205,11 +198,10 @@ namespace CargoAccelerators
                 (current, segment) =>
                     current
                     + (segment.segmentGO.transform.TransformPoint(SegmentCoM) - ori) * SegmentMass);
-            if(constructionProgress > 0)
+            if(constructedMass > 0)
             {
                 var attachmentPoint = getAttachmentTransform();
-                CoM += (attachmentPoint.TransformPoint(SegmentCoM) - ori)
-                       * (SegmentMass * constructionProgress);
+                CoM += (attachmentPoint.TransformPoint(SegmentCoM) - ori) * (float)constructedMass;
             }
             part.CoMOffset = part.partTransform.InverseTransformDirection(CoM / part.mass);
         }

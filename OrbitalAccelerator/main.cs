@@ -23,13 +23,9 @@ namespace CargoAccelerators
         [KSPField] public float SegmentMass;
         [KSPField] public float SegmentCost;
         [KSPField] public Vector3 SegmentCoM;
-        [KSPField] public Vector3 ScaffoldStartScale = new Vector3(1, 1, 0.01f);
-        [KSPField] public float ScaffoldDeployTime = 60f;
 
         [KSPField(isPersistant = true)] public AcceleratorState State = AcceleratorState.IDLE;
         [KSPField(isPersistant = true)] public bool AutoAlignEnabled;
-        [KSPField(isPersistant = true)] private float deploymentProgress = -1;
-        [KSPField(isPersistant = true)] private float constructionProgress = -1;
 
         private AcceleratorWindow UI;
         private AxisAttitudeController axisController;
@@ -80,6 +76,7 @@ namespace CargoAccelerators
                 return;
             }
             GameEvents.onVesselWasModified.Add(onVesselWasModified);
+            GameEvents.onVesselCrewWasModified.Add(onVesselCrewWasModified);
         }
 
         private void OnDestroy()
@@ -97,6 +94,7 @@ namespace CargoAccelerators
             Fields[nameof(numSegments)].OnValueModified -= onNumSegmentsChange;
             Fields[nameof(ShowUI)].OnValueModified -= showUI;
             GameEvents.onVesselWasModified.Remove(onVesselWasModified);
+            GameEvents.onVesselCrewWasModified.Remove(onVesselCrewWasModified);
             axisController?.Disconnect();
             axisController = null;
             UI?.Close();
@@ -106,12 +104,14 @@ namespace CargoAccelerators
         {
             base.OnLoad(node);
             loadDockingPortConfig(node);
+            loadConstructionState(node);
         }
 
         public override void OnSave(ConfigNode node)
         {
             base.OnSave(node);
             saveDockingPortState(node);
+            saveConstructionState(node);
         }
 
         public override void OnStart(StartState state)
@@ -135,7 +135,7 @@ namespace CargoAccelerators
                 return;
             }
             launchingAttractorOrigPower = launchingDamper.AttractorPower;
-            if(!updateSegments() || !updateScaffold(deploymentProgress))
+            if(!updateSegments((int)numSegments) || !updateScaffold(deploymentProgress))
                 this.ConfigurationInvalid("Unable to initialize dynamic model components");
             var numSegmentsField = Fields[nameof(numSegments)];
             numSegmentsField.OnValueModified += onNumSegmentsChange;
@@ -144,11 +144,13 @@ namespace CargoAccelerators
             if(numSegmentsField.uiControlFlight is UI_FloatRange numSegmentsControlFlight)
                 numSegmentsControlFlight.maxValue = MaxSegments;
             Fields[nameof(ShowUI)].OnValueModified += showUI;
-            Fields[nameof(BuildSegment)].OnValueModified += buildSegment;
+            Fields[nameof(BuildSegment)].OnValueModified += onBuildSegmentChange;
             axisController = new AxisAttitudeController(this);
             UI = new AcceleratorWindow(this);
             if(ShowUI)
                 UI.Show(this);
+            fixConstructionState();
+            updateWorkforce();
             UpdateParams();
         }
 
@@ -157,6 +159,13 @@ namespace CargoAccelerators
             if(axisController == null || vsl != vessel || vsl == null)
                 return;
             axisController.UpdateTorqueProviders();
+        }
+
+        private void onVesselCrewWasModified(Vessel vsl)
+        {
+            if(vsl != vessel || vsl == null)
+                return;
+            updateWorkforce();
         }
 
         /// <summary>
