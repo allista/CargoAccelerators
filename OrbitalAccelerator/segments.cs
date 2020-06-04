@@ -56,6 +56,7 @@ namespace CargoAccelerators
 
         private static FieldInfo rendererlistscreated_FI = typeof(Part).GetField("rendererlistscreated",
             BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
+
         private void resetRendererCaches()
         {
             rendererlistscreated_FI.SetValue(part, false);

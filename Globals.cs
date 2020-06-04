@@ -3,8 +3,8 @@ using AT_Utils;
 
 namespace CargoAccelerators
 {
-    [SuppressMessage("ReSharper", "ConvertToConstant.Global")]
-    [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
+    [SuppressMessage("ReSharper", "ConvertToConstant.Global"),
+     SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
     public class Globals : PluginGlobals<Globals>
     {
         public readonly UIBundle AssetBundle = new UIBundle("CargoAccelerators/ca_ui.ksp");

@@ -15,7 +15,7 @@ namespace CargoAccelerators
             ABORT,
             UNDER_CONSTRUCTION,
         }
-        
+
         private void changeState(AcceleratorState newState)
         {
             State = newState;

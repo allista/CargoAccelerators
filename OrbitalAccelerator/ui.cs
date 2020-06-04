@@ -85,7 +85,7 @@ namespace CargoAccelerators
             guiUnits = "t",
             guiFormat = "F1")]
         public float VesselMass;
-
+        
         [KSPEvent(active = true, guiActive = true, guiName = "Reload CA Globals")]
         public void ReloadGlobals()
         {
