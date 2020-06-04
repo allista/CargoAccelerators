@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using AT_Utils;
 using AT_Utils.UI;
@@ -142,6 +143,8 @@ namespace CargoAccelerators.UI
                     Controller.ejectPayloadButton.SetInteractable(false);
                     Controller.launchButton.SetInteractable(false);
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 

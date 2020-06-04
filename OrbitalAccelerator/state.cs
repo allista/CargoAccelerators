@@ -106,6 +106,8 @@ namespace CargoAccelerators
                         changeState(AcceleratorState.IDLE);
                     launchingDamper.InvertAttractor = false;
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
