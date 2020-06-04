@@ -113,16 +113,14 @@ namespace CargoAccelerators
         {
             if(!HighLogic.LoadedSceneIsFlight || FlightDriver.Pause)
                 return;
-            switch(State)
+            if(State == AcceleratorState.ABORT)
             {
-                case AcceleratorState.ABORT:
-                    var payloadRelV = (launchParams.payload.orbit.vel - vessel.orbit.vel).xzy;
-                    if(Vector3d.Dot(payloadRelV, launchingDamper.attractorAxisW) < 0.1)
-                    {
-                        launchingDamper.EnableDamper(false);
-                        changeState(AcceleratorState.IDLE);
-                    }
-                    break;
+                var payloadRelV = (launchParams.payload.orbit.vel - vessel.orbit.vel).xzy;
+                if(Vector3d.Dot(payloadRelV, launchingDamper.attractorAxisW) < 0.1)
+                {
+                    launchingDamper.EnableDamper(false);
+                    changeState(AcceleratorState.IDLE);
+                }
             }
             constructionFixedUpdate();
         }
