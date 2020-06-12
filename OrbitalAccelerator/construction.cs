@@ -30,6 +30,11 @@ namespace CargoAccelerators
         [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Constructing", disabledText = "Idle")]
         public bool BuildSegment;
 
+        [KSPField(guiActive = true,
+            guiName = "Construction Progress",
+            guiFormat = "P1")]
+        public float ConstructionProgress;
+
         [KSPField(isPersistant = true, guiActive = true, guiName = "Construction")]
         private ConstructionState constructionState = ConstructionState.IDLE;
 
@@ -54,6 +59,7 @@ namespace CargoAccelerators
                 constructionRecipe = ConfigNodeObject.FromConfig<ConstructionRecipe>(recipeNode);
             else
                 this.Error($"Unable to find {nameof(constructionRecipe)} node in: {node}");
+            ConstructionProgress = (float)constructedMass / SegmentMass;
         }
 
         private void saveConstructionState(ConfigNode node)
@@ -94,6 +100,7 @@ namespace CargoAccelerators
                     deploymentProgress = 0;
                     constructedMass = 0;
                     lastConstructionUT = -1;
+                    ConstructionProgress = 0;
                     constructionState = ConstructionState.DEPLOYING;
                     changeState(AcceleratorState.UNDER_CONSTRUCTION);
                     updateWorkforce();
@@ -140,6 +147,7 @@ namespace CargoAccelerators
                     break;
                 case ConstructionState.CONSTRUCTING:
                     BuildSegment = true;
+                    ConstructionProgress = (float)constructedMass / SegmentMass;
                     break;
                 case ConstructionState.FINISHED:
                     BuildSegment = false;
@@ -156,6 +164,7 @@ namespace CargoAccelerators
                     }
                     trashMass = 0;
                     constructedMass = 0;
+                    ConstructionProgress = 0;
                     constructionState = ConstructionState.IDLE;
                     changeState(AcceleratorState.IDLE);
                     UpdateParams();
