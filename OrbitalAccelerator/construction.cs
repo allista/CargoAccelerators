@@ -35,6 +35,7 @@ namespace CargoAccelerators
 
         [KSPField(isPersistant = true)] private float deploymentProgress = -1;
         [KSPField(isPersistant = true)] private double constructedMass;
+        [KSPField(isPersistant = true)] private double trashMass;
 
         private float workforce;
         private double lastConstructionUT = -1;
@@ -153,6 +154,7 @@ namespace CargoAccelerators
                         constructionState = ConstructionState.PAUSE;
                         break;
                     }
+                    trashMass = 0;
                     constructedMass = 0;
                     constructionState = ConstructionState.IDLE;
                     changeState(AcceleratorState.IDLE);
@@ -186,7 +188,8 @@ namespace CargoAccelerators
             {
                 var chunk = Math.Min(dT, maxTimeStep);
                 var work = Math.Min(workforce * chunk, constructionRecipe.RequiredWork(SegmentMass - constructedMass));
-                var constructed = constructionRecipe.ProduceMass(part, work);
+                var constructed = constructionRecipe.ProduceMass(part, work, out var trash);
+                trashMass += trash;
                 if(constructed <= 0)
                 {
                     stopConstruction("Segment construction paused.\nNo enough resources.");
@@ -233,22 +236,39 @@ namespace CargoAccelerators
 
         public double RequiredWork(double massToProduce) => massToProduce / MassProduction;
 
-        public double ProduceMass(Part fromPart, double work)
+        public double ProduceMass(Part fromPart, double work, out double trashMass)
         {
             var success = true;
             var constructedMass = work * MassProduction;
+            var usedMass = 0.0;
             foreach(var r in Inputs)
             {
                 var demand = r.UsePerMass * constructedMass;
                 if(!r.UseUnits && r.def.density > 0)
                     demand /= r.def.density;
                 var consumed = fromPart.RequestResource(r.id, demand);
+                if(r.def.density > 0)
+                    usedMass += consumed * r.def.density;
                 if(consumed / demand > ShutdownThreshold)
                     continue;
                 success = false;
                 break;
             }
-            return success ? constructedMass : 0;
+            if(success)
+            {
+                if(constructedMass > usedMass)
+                {
+                    constructedMass = usedMass;
+                    trashMass = 0;
+                }
+                else
+                {
+                    trashMass = usedMass - constructedMass;
+                }
+                return constructedMass;
+            }
+            trashMass = usedMass;
+            return 0;
         }
     }
 }
