@@ -70,12 +70,22 @@ namespace CargoAccelerators
 
         public bool RemoveSelf()
         {
+            if(vessel.packed)
+                return false;
+            if(dockedPartUId > 0)
+                otherNode = FindOtherNode();
             if(otherNode != null)
             {
-                Utils.Message(otherNode.vessel == vessel
-                    ? $"Undock the \"{otherNode.vesselInfo.name}\""
-                    : $"\"{otherNode.vessel.vesselName}\" is too close");
-                return false;
+                if(otherNode.vessel == vessel)
+                {
+                    Utils.Message($"Undock the \"{otherNode.vesselInfo.name}\" to continue");
+                    return false;
+                }
+                if(CheckDockContact(this, otherNode, minDistanceToReEngage, 0, 0))
+                {
+                    Utils.Message($"\"{otherNode.vessel.vesselName}\" is too close");
+                    return false;
+                }
             }
             foreach(var vsl in FlightGlobals.Vessels)
             {
