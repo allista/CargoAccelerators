@@ -121,6 +121,7 @@ namespace CargoAccelerators
             constructionState = constructedMass < SegmentMass
                 ? ConstructionState.PAUSE
                 : ConstructionState.FINISHED;
+            TimeWarp.SetRate(0, false);
             if(!string.IsNullOrEmpty(message))
                 Utils.Message(message);
         }
