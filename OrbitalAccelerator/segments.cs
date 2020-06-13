@@ -8,12 +8,34 @@ namespace CargoAccelerators
 {
     public partial class OrbitalAccelerator
     {
+        [KSPField] public string BarrelAttachmentTransform = "BarrelAttachment";
+        [KSPField] public string SegmentTransform = "BarrelSegment";
+        [KSPField] public string SegmentSensorTransform = "BarrelSegmentSensor";
+        [KSPField] public string ScaffoldTransform = "BarrelScaffold";
+        [KSPField] public string NextSegmentTransform = "NextSegment";
+
+        [KSPField(guiActive = true,
+            guiName = "Segment Mass",
+            guiUnits = "t",
+            guiFormat = "F1")]
+        public float SegmentMass;
+
+        [KSPField] public float SegmentCost;
+        [KSPField] public Vector3 SegmentCoM;
+
         [KSPField(isPersistant = true,
             guiActive = true,
             guiActiveEditor = true,
             guiName = "Segments")]
         [UI_FloatRange(scene = UI_Scene.All, minValue = 0, maxValue = 20, stepIncrement = 1)]
         public float numSegments;
+
+        [KSPField] public int MaxSegments = 20;
+
+        public Transform barrelAttachmentTransform;
+        public GameObject barrelSegmentPrefab;
+        public GameObject segmentScaffoldPrefab;
+        public GameObject segmentScaffold;
 
         private struct BarrelSegment
         {

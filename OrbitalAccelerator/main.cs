@@ -13,17 +13,6 @@ namespace CargoAccelerators
         [KSPField] public string LoadingDamperID = "LoadingDamper";
         [KSPField] public string LaunchingDamperID = "LaunchingDamper";
 
-        [KSPField] public string BarrelAttachmentTransform = "BarrelAttachment";
-        [KSPField] public string SegmentTransform = "BarrelSegment";
-        [KSPField] public string SegmentSensorTransform = "BarrelSegmentSensor";
-        [KSPField] public string ScaffoldTransform = "BarrelScaffold";
-        [KSPField] public string NextSegmentTransform = "NextSegment";
-
-        [KSPField] public int MaxSegments = 20;
-        [KSPField] public float SegmentMass;
-        [KSPField] public float SegmentCost;
-        [KSPField] public Vector3 SegmentCoM;
-
         [KSPField(isPersistant = true)] public AcceleratorState State = AcceleratorState.IDLE;
         [KSPField(isPersistant = true)] public bool AutoAlignEnabled;
 
@@ -31,10 +20,6 @@ namespace CargoAccelerators
         private AxisAttitudeController axisController;
         public ATMagneticDamper loadingDamper;
         public ExtensibleMagneticDamper launchingDamper;
-        public Transform barrelAttachmentTransform;
-        public GameObject barrelSegmentPrefab;
-        public GameObject segmentScaffoldPrefab;
-        public GameObject segmentScaffold;
         private float vesselSize;
         private float launchingAttractorOrigPower;
 
