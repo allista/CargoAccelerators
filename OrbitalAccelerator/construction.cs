@@ -152,6 +152,7 @@ namespace CargoAccelerators
                     break;
                 case ConstructionState.FINISHED:
                     BuildSegment = false;
+                    ConstructionProgress = 1;
                     if(!updateScaffold(-1))
                     {
                         constructionState = ConstructionState.PAUSE;
