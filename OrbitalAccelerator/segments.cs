@@ -266,7 +266,7 @@ namespace CargoAccelerators
             updateCoMOffset();
             delayedUpdateInertiaTensor();
 #if DEBUG
-            StartCoroutine(CallbackUtil.DelayedCallback(1,
+            StartCoroutine(CallbackUtil.DelayedCallback(3,
                 () =>
                 {
                     if(vessel != null)
