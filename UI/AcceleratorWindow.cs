@@ -25,6 +25,7 @@ namespace CargoAccelerators.UI
             Controller.acquirePayloadButton.onClick.AddListener(accelerator.AcquirePayload);
             Controller.ejectPayloadButton.onClick.AddListener(accelerator.EjectPayload);
             Controller.abortButton.onClick.AddListener(accelerator.AbortOperations);
+            Controller.autoAlignToggle.SetIsOnAndColorWithoutNotify(accelerator.AutoAlignEnabled);
             Controller.autoAlignToggle.onValueChanged.AddListener(accelerator.ToggleAutoAlign);
             Controller.launchButton.onClick.AddListener(accelerator.LaunchPayload);
             Controller.title.text = accelerator.Title();

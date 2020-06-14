@@ -1,4 +1,5 @@
 using AT_Utils;
+using AT_Utils.UI;
 using UnityEngine;
 
 namespace CargoAccelerators
@@ -60,7 +61,7 @@ namespace CargoAccelerators
             AutoAlignEnabled = enable;
             axisController.Reset();
             if(UI.IsShown)
-                UI.Controller.autoAlignToggle.SetIsOnWithoutNotify(enable);
+                UI.Controller.autoAlignToggle.SetIsOnAndColorWithoutNotify(enable);
             if(!enable)
                 return;
             vessel.ActionGroups.SetGroup(KSPActionGroup.SAS, false);
