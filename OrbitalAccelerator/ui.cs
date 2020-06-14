@@ -6,6 +6,8 @@ namespace CargoAccelerators
     public partial class OrbitalAccelerator
     {
         [KSPField(isPersistant = true,
+            groupName = "OrbitalAcceleratorGroup",
+            groupDisplayName = "Orbital Accelerator",
             guiName = "Accelerator Controls",
             guiActive = true,
             guiActiveEditor = true,
@@ -81,12 +83,18 @@ namespace CargoAccelerators
 #if DEBUG
         [KSPField(guiActive = true,
             guiActiveEditor = true,
+            groupName = "OrbitalAcceleratorGroup",
+            groupDisplayName = "Orbital Accelerator",
             guiName = "Vessel Mass",
             guiUnits = "t",
             guiFormat = "F1")]
         public float VesselMass;
-        
-        [KSPEvent(active = true, guiActive = true, guiName = "Reload CA Globals")]
+
+        [KSPEvent(active = true,
+            guiActive = true,
+            groupName = "OrbitalAcceleratorGroup",
+            groupDisplayName = "Orbital Accelerator",
+            guiName = "Reload CA Globals")]
         public void ReloadGlobals()
         {
             Globals.Load();

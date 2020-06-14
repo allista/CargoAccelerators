@@ -15,6 +15,8 @@ namespace CargoAccelerators
         [KSPField] public string NextSegmentTransform = "NextSegment";
 
         [KSPField(guiActive = true,
+            groupName = "OrbitalAcceleratorGroup",
+            groupDisplayName = "Orbital Accelerator",
             guiName = "Segment Mass",
             guiUnits = "t",
             guiFormat = "F1")]
@@ -26,6 +28,8 @@ namespace CargoAccelerators
         [KSPField(isPersistant = true,
             guiActive = true,
             guiActiveEditor = true,
+            groupName = "OrbitalAcceleratorGroup",
+            groupDisplayName = "Orbital Accelerator",
             guiName = "Segments")]
         [UI_FloatRange(scene = UI_Scene.All, minValue = 0, maxValue = 20, stepIncrement = 1)]
         public float numSegments;

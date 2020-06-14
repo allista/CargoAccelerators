@@ -22,6 +22,8 @@ namespace CargoAccelerators
         [KSPField] public float ScaffoldDeployTime = 600f;
 
         [KSPField(isPersistant = true,
+            groupName = "OrbitalAcceleratorGroup",
+            groupDisplayName = "Orbital Accelerator",
             guiName = "Build next segment",
             guiActive = true,
             guiActiveEditor = true,
@@ -31,11 +33,17 @@ namespace CargoAccelerators
         public bool BuildSegment;
 
         [KSPField(guiActive = true,
+            groupName = "OrbitalAcceleratorGroup",
+            groupDisplayName = "Orbital Accelerator",
             guiName = "Construction Progress",
             guiFormat = "P1")]
         public float ConstructionProgress;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Construction")]
+        [KSPField(isPersistant = true,
+            guiActive = true,
+            guiName = "Construction",
+            groupName = "OrbitalAcceleratorGroup",
+            groupDisplayName = "Orbital Accelerator")]
         private ConstructionState constructionState = ConstructionState.IDLE;
 
         [KSPField(isPersistant = true)] private float deploymentProgress = -1;
