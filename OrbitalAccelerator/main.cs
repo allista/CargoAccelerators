@@ -1,7 +1,6 @@
 ﻿using AT_Utils;
 using CargoAccelerators.UI;
 using JetBrains.Annotations;
-using UnityEngine;
 
 namespace CargoAccelerators
 {
@@ -22,35 +21,6 @@ namespace CargoAccelerators
         public ExtensibleMagneticDamper launchingDamper;
         private float vesselSize;
         private float launchingAttractorOrigPower;
-
-        private bool findTransforms()
-        {
-            var success = true;
-            var T = part.FindModelTransform(SegmentTransform);
-            if(T == null)
-            {
-                this.Error($"Unable to find {SegmentTransform} model transform");
-                success = false;
-            }
-            barrelSegmentPrefab = T.gameObject;
-            barrelSegmentPrefab.SetActive(false);
-            T = part.FindModelTransform(BarrelAttachmentTransform);
-            if(T == null)
-            {
-                this.Error($"Unable to find {BarrelAttachmentTransform} model transform");
-                success = false;
-            }
-            barrelAttachmentTransform = T;
-            T = part.FindModelTransform(ScaffoldTransform);
-            if(T != null)
-            {
-                segmentScaffoldPrefab = T.gameObject;
-                segmentScaffoldPrefab.SetActive(false);
-            }
-            else
-                this.Error($"Unable to find {ScaffoldTransform} model transform");
-            return success;
-        }
 
         public override void OnAwake()
         {

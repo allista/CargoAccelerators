@@ -53,6 +53,35 @@ namespace CargoAccelerators
 
         private readonly List<BarrelSegment> barrelSegments = new List<BarrelSegment>();
 
+        private bool findTransforms()
+        {
+            var success = true;
+            var T = part.FindModelTransform(SegmentTransform);
+            if(T == null)
+            {
+                this.Error($"Unable to find {SegmentTransform} model transform");
+                success = false;
+            }
+            barrelSegmentPrefab = T.gameObject;
+            barrelSegmentPrefab.SetActive(false);
+            T = part.FindModelTransform(BarrelAttachmentTransform);
+            if(T == null)
+            {
+                this.Error($"Unable to find {BarrelAttachmentTransform} model transform");
+                success = false;
+            }
+            barrelAttachmentTransform = T;
+            T = part.FindModelTransform(ScaffoldTransform);
+            if(T != null)
+            {
+                segmentScaffoldPrefab = T.gameObject;
+                segmentScaffoldPrefab.SetActive(false);
+            }
+            else
+                this.Error($"Unable to find {ScaffoldTransform} model transform");
+            return success;
+        }
+
         private void onNumSegmentsChange(object value)
         {
             if(State == AcceleratorState.IDLE)
