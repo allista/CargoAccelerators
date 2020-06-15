@@ -21,6 +21,7 @@ namespace CargoAccelerators
             public double launchUT;
             public double rawDuration;
             public double duration;
+            public double launchWindow;
             public double energy;
             public double acceleration;
             public double maxAccelerationTime;
@@ -156,6 +157,7 @@ namespace CargoAccelerators
                 }
                 // calculate launch start UT
                 launchUT = node.UT - middleDuration;
+                launchWindow = -middleDuration * GLB.LAUNCH_WINDOW;
             }
 
             public override string ToString()
@@ -439,7 +441,7 @@ energy: {energy}";
                   && !canLaunch())
                 yield return null;
             var timeLeft = launchParams.launchUT - Planetarium.GetUniversalTime();
-            if(timeLeft < 0)
+            if(timeLeft < launchParams.launchWindow)
             {
                 abortLaunchInternal("Missed launch window.",
                     AcceleratorState.LOADED);

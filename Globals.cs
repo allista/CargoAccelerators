@@ -21,6 +21,12 @@ namespace CargoAccelerators
         [Persistent] public float MANEUVER_DELTA_V_TOL = 0.01f;
         [Persistent] public int FINE_TUNE_FRAMES = 3;
 
+        /// <summary>
+        /// The part of the half of the maneuver duration within which it is still ok to launch
+        /// </summary>
+        [Persistent]
+        public float LAUNCH_WINDOW = 0.2f;
+
         [Persistent] public bool TestingMode = false;
     }
 }
