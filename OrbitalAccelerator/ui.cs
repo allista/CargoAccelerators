@@ -11,7 +11,6 @@ namespace CargoAccelerators
             groupDisplayName = "Orbital Accelerator",
             guiName = "Accelerator Controls",
             guiActive = true,
-            guiActiveEditor = true,
             guiActiveUnfocused = true,
             unfocusedRange = 50)]
         [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Enabled", disabledText = "Disabled")]

@@ -26,7 +26,6 @@ namespace CargoAccelerators
             groupDisplayName = "Orbital Accelerator",
             guiName = "Build next segment",
             guiActive = true,
-            guiActiveEditor = true,
             guiActiveUnfocused = true,
             unfocusedRange = 50)]
         [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Constructing", disabledText = "Idle")]
