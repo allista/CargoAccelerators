@@ -9,6 +9,16 @@ namespace CargoAccelerators
 {
     public partial class OrbitalAccelerator
     {
+        [KSPField(isPersistant = true,
+            groupName = "OrbitalAcceleratorGroup",
+            groupDisplayName = "Orbital Accelerator",
+            guiName = "Partial launch",
+            guiActive = true,
+            guiActiveUnfocused = true,
+            unfocusedRange = 50)]
+        [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Allowed", disabledText = "Forbidden")]
+        public bool PartialLaunch;
+
         public class LaunchParams
         {
             private readonly OrbitalAccelerator accelerator;
@@ -287,19 +297,27 @@ energy: {energy}";
             // compare projected max values to the required by the maneuver node
             if(launchParams.nodeDeltaVm > launchParams.maxDeltaV)
             {
-                var dVShortage = launchParams.nodeDeltaVm - launchParams.maxDeltaV;
+                var dV = Utils.formatBigValue((float)launchParams.maxDeltaV, "m/s");
+                var dVShortage =
+                    Utils.formatBigValue((float)(launchParams.nodeDeltaVm - launchParams.maxDeltaV), "m/s");
                 UI.AddMessage(
-                    $"This accelerator is too short for the planned maneuver of the \"{launchParams.payloadTitle}\".\nMaximum possible dV is {dVShortage:F1} m/s less then required.");
-                return false;
+                    $"This accelerator is too short for the planned maneuver of the \"{launchParams.payloadTitle}\".\nMaximum possible dV is {dV}, which is {dVShortage} less then required.");
+                if(!PartialLaunch)
+                    return false;
             }
             // check if launch duration is within accelerator limits
             launchParams.CalculateLaunchTiming();
             if(launchParams.duration > launchParams.maxAccelerationTime)
             {
-                var timeShortage = launchParams.duration - launchParams.maxAccelerationTime;
+                var timeShortage =
+                    Utils.formatBigValue((float)(launchParams.duration - launchParams.maxAccelerationTime), "s");
+                var maxTime = Utils.formatBigValue((float)launchParams.maxAccelerationTime, "s");
                 UI.AddMessage(
-                    $"This accelerator is too short for the planned maneuver of the \"{launchParams.payloadTitle}\".\nMaximum possible acceleration time is {timeShortage:F1} s less then required.");
-                return false;
+                    $"This accelerator is too short for the planned maneuver of the \"{launchParams.payloadTitle}\".\nMaximum possible acceleration time is {maxTime}, which is {timeShortage} less then required.");
+                if(!PartialLaunch)
+                    return false;
+                launchParams.duration = launchParams.maxAccelerationTime;
+                launchParams.rawDuration = Math.Min(launchParams.rawDuration, launchParams.maxAccelerationTime);
             }
             // check if there's enough energy
             launchParams.energy = launchParams.rawDuration * energyCurrent;
@@ -308,7 +326,8 @@ energy: {energy}";
             {
                 UI.AddMessage(
                     $"Not enough energy for the maneuver. Additional {launchParams.energy - amountEC} EC is required.");
-                return false;
+                if(!PartialLaunch)
+                    return false;
             }
             launchParams.maneuverValid = true;
             return true;
