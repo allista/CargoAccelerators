@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using AT_Utils;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace CargoAccelerators
@@ -33,6 +34,7 @@ namespace CargoAccelerators
         [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Constructing", disabledText = "Off")]
         public bool BuildSegment;
 
+        [UsedImplicitly]
         [KSPField(guiActive = true,
             groupName = "OrbitalAcceleratorGroup",
             groupDisplayName = "Orbital Accelerator",
@@ -236,7 +238,8 @@ namespace CargoAccelerators
     }
 
     [SuppressMessage("ReSharper", "ConvertToConstant.Global"),
-     SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
+     SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global"),
+     SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public class RecipeComponent : ResourceInfo
     {
         /// <summary>
