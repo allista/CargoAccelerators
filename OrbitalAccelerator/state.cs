@@ -60,7 +60,7 @@ namespace CargoAccelerators
                     if(launchingDamper.DamperEnabled)
                         launchingDamper.EnableDamper(false);
                     if(loadingDamper.VesselsInside.Count > 0)
-                        changeState(AcceleratorState.LOADED);
+                        changeState(AcceleratorState.ACQUIRE_PAYLOAD);
                     break;
                 case AcceleratorState.LOADED:
                     if(loadingDamper.VesselsInside.Count == 0)
