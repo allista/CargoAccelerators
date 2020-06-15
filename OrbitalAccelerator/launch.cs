@@ -71,30 +71,55 @@ namespace CargoAccelerators
             {
                 maneuverValid = false;
                 nodeDeltaVm = 0;
+                node = null;
+                var now = Planetarium.GetUniversalTime();
+                ManeuverNode payloadNode = null;
                 if(payload.patchedConicSolver != null
                    && payload.patchedConicSolver.maneuverNodes.Count > 0)
                 {
-                    var payloadNode = payload.patchedConicSolver.maneuverNodes[0];
-                    node = new ManeuverNode
+                    var nodes = payload.patchedConicSolver.maneuverNodes;
+                    for(int i = 0, len = nodes.Count; i < len; i++)
                     {
-                        UT = payloadNode.UT,
-                        DeltaV = payloadNode.DeltaV,
-                        patch = payload.orbit,
-                        nextPatch = new Orbit(payloadNode.nextPatch)
-                    };
+                        if(nodes[i].UT <= now)
+                            continue;
+                        payloadNode = nodes[0];
+                        break;
+                    }
+                    if(payloadNode != null)
+                    {
+                        node = new ManeuverNode
+                        {
+                            UT = payloadNode.UT,
+                            DeltaV = payloadNode.DeltaV,
+                            patch = payload.orbit,
+                            nextPatch = new Orbit(payloadNode.nextPatch)
+                        };
+                    }
                 }
                 else if(payload.flightPlanNode.CountNodes > 0)
                 {
-                    node = new ManeuverNode();
-                    node.Load(payload.flightPlanNode.nodes[0]);
-                    var hostNode = accelerator.vessel.patchedConicSolver.AddManeuverNode(node.UT);
-                    hostNode.DeltaV = node.DeltaV;
-                    accelerator.vessel.patchedConicSolver.UpdateFlightPlan();
-                    node.patch = payload.orbit;
-                    node.nextPatch = hostNode.nextPatch;
-                    hostNode.RemoveSelf();
+                    var nodes = payload.flightPlanNode.nodes;
+                    for(int i = 0, len = nodes.Count; i < len; i++)
+                    {
+                        payloadNode = new ManeuverNode();
+                        payloadNode.Load(payload.flightPlanNode.nodes[0]);
+                        if(payloadNode.UT <= now)
+                            continue;
+                        node = payloadNode;
+                        break;
+                    }
+                    if(payloadNode != null)
+                    {
+                        node = payloadNode;
+                        var hostNode = accelerator.vessel.patchedConicSolver.AddManeuverNode(node.UT);
+                        hostNode.DeltaV = node.DeltaV;
+                        accelerator.vessel.patchedConicSolver.UpdateFlightPlan();
+                        node.patch = payload.orbit;
+                        node.nextPatch = hostNode.nextPatch;
+                        hostNode.RemoveSelf();
+                    }
                 }
-                else
+                if(node == null)
                 {
                     accelerator.UI.AddMessage("Payload doesn't have a maneuver node.");
                     return false;
