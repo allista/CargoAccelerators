@@ -184,7 +184,7 @@ namespace CargoAccelerators
                 return;
             steering.Zero();
             var AV = vessel.angularVelocity * Mathf.Rad2Deg;
-            if(launchParams != null && !launchParams.maneuverStarted)
+            if(launchParams != null && launchParams.Valid && !launchParams.maneuverStarted)
             {
                 UpdateAttitudeError();
                 var timeToZero = new Vector2(AttitudeError.y / AV.x, AttitudeError.z / AV.y);
