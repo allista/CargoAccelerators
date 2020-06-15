@@ -239,6 +239,19 @@ namespace CargoAccelerators
         /// </summary>
         [Persistent]
         public bool UseUnits = false;
+
+        /// <summary>
+        /// Pre-calculated value of the usage of this resource in units per 1 t of construction mass.
+        /// </summary>
+        public float UnitsPerMass { get; private set; }
+
+        public override void Load(ConfigNode node)
+        {
+            base.Load(node);
+            UnitsPerMass = UsePerMass;
+            if(!UseUnits && def.density > 0)
+                UnitsPerMass /= def.density;
+        }
     }
 
     [SuppressMessage("ReSharper", "ConvertToConstant.Global"),
@@ -262,9 +275,7 @@ namespace CargoAccelerators
             var usedMass = 0.0;
             foreach(var r in Inputs)
             {
-                var demand = r.UsePerMass * constructedMass;
-                if(!r.UseUnits && r.def.density > 0)
-                    demand /= r.def.density;
+                var demand = r.UnitsPerMass * constructedMass;
                 var consumed = fromPart.RequestResource(r.id, demand);
                 if(r.def.density > 0)
                     usedMass += consumed * r.def.density;
