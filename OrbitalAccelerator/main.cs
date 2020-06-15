@@ -22,6 +22,14 @@ namespace CargoAccelerators
         private float vesselSize;
         private float launchingAttractorOrigPower;
 
+        public override string GetInfo()
+        {
+            var info = StringBuilderCache.Acquire();
+            segmentsInfo(info);
+            constructionInfo(info);
+            return info.ToStringAndRelease();
+        }
+
         public override void OnAwake()
         {
             base.OnAwake();

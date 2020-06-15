@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using AT_Utils;
 using UnityEngine;
 
@@ -52,6 +53,13 @@ namespace CargoAccelerators
         }
 
         private readonly List<BarrelSegment> barrelSegments = new List<BarrelSegment>();
+
+        private void segmentsInfo(StringBuilder info)
+        {
+            UpdateSegmentCost();
+            info.AppendLine($"Max. segments: {MaxSegments}");
+            info.AppendLine($"Segment mass: {Utils.formatBigValue(SegmentMass, "t")}");
+        }
 
         private bool findTransforms()
         {

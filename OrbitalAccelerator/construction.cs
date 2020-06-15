@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using AT_Utils;
 using UnityEngine;
 
@@ -20,6 +21,7 @@ namespace CargoAccelerators
 
         [KSPField] public Vector3 ScaffoldStartScale = new Vector3(1, 1, 0.01f);
         [KSPField] public float ScaffoldDeployTime = 600f;
+        [KSPField] public float SpecialistMinWorkforce = 0.5f;
 
         [KSPField(isPersistant = true,
             groupName = "OrbitalAcceleratorGroup",
@@ -53,8 +55,21 @@ namespace CargoAccelerators
         private double lastConstructionUT = -1;
         private const double maxTimeStep = 3600.0;
 
+        private void constructionInfo(StringBuilder info)
+        {
+            if(constructionRecipe == null)
+                return;
+            info.AppendLine($"Segment construction:");
+            info.Append(constructionRecipe.GetInfo(SegmentMass));
+            var maxConstructionTime = SegmentMass / constructionRecipe.MassProduction / SpecialistMinWorkforce;
+            info.AppendLine(
+                $"- Max. time: {Utils.formatTimeDelta(maxConstructionTime)}");
+        }
+
         private void updateWorkforce() =>
-            workforce = vessel != null ? ConstructionUtils.VesselWorkforce<ConstructionSkill>(vessel, 0.5f) : 0;
+            workforce = vessel != null
+                ? ConstructionUtils.VesselWorkforce<ConstructionSkill>(vessel, SpecialistMinWorkforce)
+                : 0;
 
         private void loadConstructionState(ConfigNode node)
         {
@@ -251,6 +266,9 @@ namespace CargoAccelerators
             if(!UseUnits && def.density > 0)
                 UnitsPerMass /= def.density;
         }
+
+        public string GetInfo(float forMass = 1) =>
+            $"{def.displayName}: {Utils.formatBigValue(UnitsPerMass * forMass, "u")}";
     }
 
     [SuppressMessage("ReSharper", "ConvertToConstant.Global"),
@@ -280,6 +298,15 @@ namespace CargoAccelerators
         }
 
         public double RequiredWork(double massToProduce) => massToProduce / MassProduction;
+
+        public string GetInfo(float forMass = 1)
+        {
+            var info = StringBuilderCache.Acquire();
+            foreach(var r in Inputs)
+                info.AppendLine($"- {r.GetInfo(forMass)}");
+            info.AppendLine($"- Total cost: {Utils.formatBigValue(CostPerMass * forMass, "£")}");
+            return info.ToStringAndRelease();
+        }
 
         public double ProduceMass(Part fromPart, double work, out double trashMass)
         {
