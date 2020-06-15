@@ -85,6 +85,12 @@ namespace CargoAccelerators
 
         public void UpdateAttitudeError()
         {
+            if(launchParams == null || !launchParams.Valid)
+            {
+                AttitudeError = Vector3.zero;
+                Aligned = true;
+                return;
+            }
             var nodeBurnVector = launchParams.GetManeuverVector();
             var axis = launchingDamper.attractorAxisW;
             var attitudeError = Utils.Angle2((Vector3)nodeBurnVector, axis);
