@@ -327,10 +327,7 @@ energy: {energy}";
             {
                 foreach(var crewMember in vsl.GetVesselCrew())
                 {
-                    var crewGTolerance = ProtoCrewMember.GToleranceMult(crewMember)
-                                         * HighLogic.CurrentGame.Parameters
-                                             .CustomParams<GameParameters.AdvancedParams>()
-                                             .KerbalGToleranceMult;
+                    var crewGTolerance = ProtoCrewMember.MaxSustainedG(crewMember);
                     if(crewGTolerance < minAccelerationTolerance)
                         minAccelerationTolerance = crewGTolerance;
                 }
