@@ -249,6 +249,9 @@ energy: {energy}";
             launchParams = new LaunchParams(this);
             if(launchParams.AcquirePayload(vesselId.Value))
                 checkPayloadManeuver();
+#if DEBUG
+            this.Debug(launchParams.ToString());
+#endif
         }
 
         private float calculateLaunchDistance()
@@ -500,7 +503,7 @@ energy: {energy}";
                 yield break;
             }
 #if DEBUG
-            this.Log(launchParams.ToString());
+            this.Debug(launchParams.ToString());
 #endif
             preLaunchOrbit = new Orbit(vessel.orbit);
             launchParams.maneuverStarted = true;
