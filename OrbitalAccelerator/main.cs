@@ -130,6 +130,7 @@ namespace CargoAccelerators
                 numSegmentsControlFlight.maxValue = MaxSegments;
             Fields[nameof(ShowUI)].OnValueModified += showUI;
             Fields[nameof(BuildSegment)].OnValueModified += onBuildSegmentChange;
+            Fields[nameof(numSegments)].guiActive = GLB.TestingMode;
             axisController = new AxisAttitudeController(this);
             UI = new AcceleratorWindow(this);
             if(ShowUI)

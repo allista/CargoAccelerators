@@ -99,6 +99,7 @@ namespace CargoAccelerators
         {
             Globals.Load();
             axisController.InitPIDs();
+            Fields[nameof(numSegments)].guiActive = GLB.TestingMode;
         }
 
         private void OnRenderObject()

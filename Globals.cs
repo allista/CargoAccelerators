@@ -19,5 +19,7 @@ namespace CargoAccelerators
         [Persistent] public float MAX_DISPLACEMENT = 0.1f; //m
         [Persistent] public float MANEUVER_DELTA_V_TOL = 0.01f;
         [Persistent] public int FINE_TUNE_FRAMES = 3;
+
+        [Persistent] public bool TestingMode = false;
     }
 }

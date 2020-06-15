@@ -31,7 +31,6 @@ namespace CargoAccelerators
         [KSPField] public Vector3 SegmentCoM;
 
         [KSPField(isPersistant = true,
-            guiActive = true,
             guiActiveEditor = true,
             groupName = "OrbitalAcceleratorGroup",
             groupDisplayName = "Orbital Accelerator",
