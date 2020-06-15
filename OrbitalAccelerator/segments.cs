@@ -15,6 +15,7 @@ namespace CargoAccelerators
         [KSPField] public string NextSegmentTransform = "NextSegment";
 
         [KSPField(guiActive = true,
+            guiActiveEditor = true,
             groupName = "OrbitalAcceleratorGroup",
             groupDisplayName = "Orbital Accelerator",
             guiName = "Segment Mass",
