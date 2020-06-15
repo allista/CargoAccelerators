@@ -71,6 +71,7 @@ namespace CargoAccelerators
                 case AcceleratorState.ACQUIRE_PAYLOAD:
                     acquirePayload();
                     UI.UpdatePayloadInfo();
+                    ToggleAutoAlign(false);
                     changeState(launchParams != null
                         ? AcceleratorState.LOADED
                         : AcceleratorState.IDLE);
