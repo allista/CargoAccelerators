@@ -161,7 +161,7 @@ namespace CargoAccelerators
             public override string ToString()
             {
                 return $@"launchParams for payload: {payload.GetID()}
-nodeDeltaV: {node.DeltaV}, |{nodeDeltaVm}|
+nodeDeltaV: {node?.DeltaV}, |{nodeDeltaVm}|
 acceleration: {acceleration}
 rawDuration: {rawDuration}
 duration: {duration}
