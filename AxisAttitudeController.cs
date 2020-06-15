@@ -181,6 +181,11 @@ namespace CargoAccelerators
             if(launchParams != null && !launchParams.maneuverStarted)
             {
                 UpdateAttitudeError();
+                var timeToZero = new Vector2(AttitudeError.y / AV.x, AttitudeError.z / AV.y);
+                host.vessel.ActionGroups.SetGroup(KSPActionGroup.RCS,
+                    !(AttitudeError.x < GLB.MAX_ATTITUDE_ERROR * 3
+                      && timeToZero.x > GLB.MIN_TIME_TO_ZERO
+                      && timeToZero.y > GLB.MIN_TIME_TO_ZERO));
                 var torque = getTorque();
                 var maxAA = Utils.AngularAcceleration(torque, vessel.MOI) * Mathf.Rad2Deg;
                 // x is direct error, y is pitch; see AttitudeError description

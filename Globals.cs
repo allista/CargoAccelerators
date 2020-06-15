@@ -17,6 +17,7 @@ namespace CargoAccelerators
         [Persistent] public float MAX_ANGULAR_VELOCITY_SQR = 0.000010132118f; //0.02 deg/s
         [Persistent] public float MAX_RELATIVE_VELOCITY_SQR = 0.0025f; //0.05 m/s
         [Persistent] public float MAX_DISPLACEMENT = 0.1f; //m
+        [Persistent] public float MIN_TIME_TO_ZERO = 1f; //m
         [Persistent] public float MANEUVER_DELTA_V_TOL = 0.01f;
         [Persistent] public int FINE_TUNE_FRAMES = 3;
 
