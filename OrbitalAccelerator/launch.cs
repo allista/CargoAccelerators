@@ -456,6 +456,8 @@ energy: {energy}";
             }
         }
 
+        private static readonly int[] controlPoints = { 180, 30, 10 };
+
         private IEnumerator<YieldInstruction> launchPayload()
         {
             yield return null;
@@ -464,15 +466,12 @@ energy: {energy}";
                 abortLaunchInternal(nextState: AcceleratorState.LOADED);
                 yield break;
             }
-            yield return StartCoroutine(checkAndWait(180));
-            if(State != AcceleratorState.LAUNCH)
-                yield break;
-            yield return StartCoroutine(checkAndWait(30));
-            if(State != AcceleratorState.LAUNCH)
-                yield break;
-            yield return StartCoroutine(checkAndWait(10));
-            if(State != AcceleratorState.LAUNCH)
-                yield break;
+            foreach(var controlPoint in controlPoints)
+            {
+                yield return StartCoroutine(checkAndWait(controlPoint));
+                if(State != AcceleratorState.LAUNCH)
+                    yield break;
+            }
             while(Planetarium.GetUniversalTime() < launchParams.launchUT)
                 yield return new WaitForFixedUpdate();
             if(!(preLaunchCheck() && canLaunch(true)))
