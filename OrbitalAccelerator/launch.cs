@@ -173,6 +173,37 @@ energy: {energy}";
         private Coroutine launchCoro;
         private Orbit preLaunchOrbit;
 
+        private uint? getLoadedVesselId(out string error)
+        {
+            error = string.Empty;
+            if(launchingDamper.VesselsInside.Count == 0)
+                return null;
+            if(loadingDamper.VesselsInside.Count == 0)
+            {
+                if(launchingDamper.VesselsInside.Count > 0)
+                    error = "A vessel is in acceleration area.";
+                return null;
+            }
+            if(loadingDamper.VesselsInside.Count > 1)
+            {
+                error = "Multiple vessels in loading area.";
+                return null;
+            }
+            if(launchingDamper.VesselsInside.Count > 1)
+            {
+                error = "Multiple vessels in acceleration area.";
+                return null;
+            }
+            var loadingId = loadingDamper.VesselsInside.First();
+            var launchingId = launchingDamper.VesselsInside.First();
+            if(loadingId != launchingId)
+            {
+                error = "Multiple vessels inside accelerator.";
+                return null;
+            }
+            return loadingId;
+        }
+
         private bool selfCheck()
         {
             if(vessel.isActiveVessel && !vessel.PatchedConicsAttached)
@@ -196,17 +227,15 @@ energy: {energy}";
         private void acquirePayload()
         {
             UI.ClearMessages();
-            var numberOfVessels = launchingDamper.VesselsInside.Count;
-            if(numberOfVessels != 1)
+            var vesselId = getLoadedVesselId(out var error);
+            if(!vesselId.HasValue)
             {
-                UI.AddMessage(numberOfVessels == 0
-                    ? "No payload in acceleration area."
-                    : "Multiple vessels in acceleration area.");
+                UI.AddMessage(error);
                 return;
             }
             clearManeuverNodes();
             launchParams = new LaunchParams(this);
-            if(launchParams.AcquirePayload(launchingDamper.VesselsInside.First()))
+            if(launchParams.AcquirePayload(vesselId.Value))
                 checkPayloadManeuver();
         }
 

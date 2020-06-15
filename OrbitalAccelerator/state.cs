@@ -59,11 +59,13 @@ namespace CargoAccelerators
                     destroyLaunchParams();
                     if(launchingDamper.DamperEnabled)
                         launchingDamper.EnableDamper(false);
-                    if(loadingDamper.VesselsInside.Count > 0)
+                    if(getLoadedVesselId(out var error).HasValue)
                         changeState(AcceleratorState.ACQUIRE_PAYLOAD);
+                    else if(!string.IsNullOrEmpty(error))
+                        UI.SetMessage(error);
                     break;
                 case AcceleratorState.LOADED:
-                    if(loadingDamper.VesselsInside.Count == 0)
+                    if(!getLoadedVesselId(out _).HasValue)
                         changeState(AcceleratorState.IDLE);
                     else if(launchParams == null)
                         changeState(AcceleratorState.ACQUIRE_PAYLOAD);
