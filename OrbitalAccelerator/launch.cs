@@ -47,9 +47,13 @@ namespace CargoAccelerators
                 payload.vesselRanges = payloadRanges;
             }
 
-            public Vector3d GetManeuverVector() =>
-                (node.nextPatch.getOrbitalVelocityAtUT(node.UT)
-                 - payload.orbit.getOrbitalVelocityAtUT(node.UT)).xzy;
+            public Vector3d GetManeuverVector()
+            {
+                return payload != null && node?.nextPatch != null
+                    ? (node.nextPatch.getOrbitalVelocityAtUT(node.UT)
+                       - payload.orbit.getOrbitalVelocityAtUT(node.UT)).xzy
+                    : Vector3d.zero;
+            }
 
             public bool AcquirePayload(uint vesselId)
             {
