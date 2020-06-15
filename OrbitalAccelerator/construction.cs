@@ -276,9 +276,19 @@ namespace CargoAccelerators
      SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public class ConstructionRecipe : ConfigNodeObject
     {
+        /// <summary>
+        /// Production of the construction mass in tons per second.
+        /// </summary>
         [Persistent] public float MassProduction = 1;
+        /// <summary>
+        /// If any of the resources in the recipe is returned by RequestResource
+        /// in the amount less than this part of the demand, the construction stops.
+        /// </summary>
         [Persistent] public float ShutdownThreshold = 0.99f;
 
+        /// <summary>
+        /// The recipe for the production of the construction mass.
+        /// </summary>
         // ReSharper disable once CollectionNeverUpdated.Global
         [Persistent] public PersistentList<RecipeComponent> Inputs = new PersistentList<RecipeComponent>();
 
