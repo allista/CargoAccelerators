@@ -279,8 +279,8 @@ energy: {energy}";
         {
             // limit maximum acceleration by GTolerance
             launchParams.acceleration = maxLaunchAcceleration(launchParams.payload);
-            if(launchParams.acceleration > launchingAttractorOrigPower)
-                launchParams.acceleration = launchingAttractorOrigPower;
+            if(launchParams.acceleration > launchingDamper.AttractorMaxPower)
+                launchParams.acceleration = launchingDamper.AttractorMaxPower;
             // calculate the force that the accelerator will apply
             // and the energy required
             var launchDistance = calculateLaunchDistance();

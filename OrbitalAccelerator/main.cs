@@ -20,7 +20,6 @@ namespace CargoAccelerators
         public ATMagneticDamper loadingDamper;
         public ExtensibleMagneticDamper launchingDamper;
         private float vesselSize;
-        private float launchingAttractorOrigPower;
 
         public override string GetInfo()
         {
@@ -97,7 +96,6 @@ namespace CargoAccelerators
                 this.ConfigurationInvalid($"Unable to find launching damper with ID {LoadingDamperID}");
                 return;
             }
-            launchingAttractorOrigPower = launchingDamper.AttractorPower;
             if(!updateSegments((int)numSegments) || !updateScaffold(deploymentProgress))
                 this.ConfigurationInvalid("Unable to initialize dynamic model components");
             var numSegmentsField = Fields[nameof(numSegments)];
