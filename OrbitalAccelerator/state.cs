@@ -85,7 +85,7 @@ namespace CargoAccelerators
                     loadingDamper.InvertAttractor = true;
                     break;
                 case AcceleratorState.LAUNCH:
-                    loadingDamper.AutoEnable = true;
+                    loadingDamper.AutoEnable = false;
                     if(launchCoro == null)
                         launchCoro = StartCoroutine(launchPayload());
                     break;
