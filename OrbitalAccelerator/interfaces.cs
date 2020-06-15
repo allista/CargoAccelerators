@@ -15,8 +15,8 @@ namespace CargoAccelerators
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
             if(constructedMass > 0)
-                return (barrelSegments.Count + (float)constructedMass / SegmentMass) * SegmentCost;
-            return barrelSegments.Count * SegmentCost;
+                return (barrelSegments.Count + (float)constructedMass / SegmentMass) * segmentCost;
+            return barrelSegments.Count * segmentCost;
         }
 
         public ModifierChangeWhen GetModuleCostChangeWhen() => ModifierChangeWhen.CONSTANTLY;
@@ -59,9 +59,9 @@ namespace CargoAccelerators
         protected override void on_rescale(ModulePair<OrbitalAccelerator> mp, Scale scale)
         {
             mp.module.SegmentMass = mp.base_module.SegmentMass * scale.absolute.volume;
-            mp.module.SegmentCost = mp.base_module.SegmentCost * scale.absolute.volume;
             mp.module.ScaffoldDeployTime = mp.base_module.ScaffoldDeployTime * scale.absolute.volume;
             mp.module.UpdateParams();
+            mp.module.UpdateSegmentCost();
         }
     }
 }

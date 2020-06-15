@@ -137,6 +137,7 @@ namespace CargoAccelerators
             fixConstructionState();
             updateWorkforce();
             UpdateParams();
+            UpdateSegmentCost();
         }
 
         private void onVesselWasModified(Vessel vsl)

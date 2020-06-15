@@ -22,7 +22,11 @@ namespace CargoAccelerators
             guiFormat = "F1")]
         public float SegmentMass;
 
-        [KSPField] public float SegmentCost;
+        /// <summary>
+        /// The cost of a segment as calculated from construction recipe
+        /// </summary>
+        private float segmentCost;
+
         [KSPField] public Vector3 SegmentCoM;
 
         [KSPField(isPersistant = true,
@@ -279,6 +283,11 @@ namespace CargoAccelerators
                         VesselMass = EditorLogic.fetch.ship.GetTotalMass();
                 }));
 #endif
+        }
+
+        public void UpdateSegmentCost()
+        {
+            segmentCost = constructionRecipe?.CostPerMass * SegmentMass ?? 0;
         }
 
         public void UpdateParams()

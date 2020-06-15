@@ -265,6 +265,20 @@ namespace CargoAccelerators
         // ReSharper disable once CollectionNeverUpdated.Global
         [Persistent] public PersistentList<RecipeComponent> Inputs = new PersistentList<RecipeComponent>();
 
+        public float CostPerMass { get; private set; }
+
+        public override void Load(ConfigNode node)
+        {
+            base.Load(node);
+            var cost = 0f;
+            foreach(var r in Inputs)
+            {
+                if(r.def.unitCost <= 0)
+                    continue;
+                cost += r.UnitsPerMass * r.def.unitCost;
+            }
+            CostPerMass = cost;
+        }
 
         public double RequiredWork(double massToProduce) => massToProduce / MassProduction;
 
