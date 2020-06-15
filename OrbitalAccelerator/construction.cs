@@ -30,7 +30,7 @@ namespace CargoAccelerators
             guiActive = true,
             guiActiveUnfocused = true,
             unfocusedRange = 50)]
-        [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Constructing", disabledText = "Idle")]
+        [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Constructing", disabledText = "Off")]
         public bool BuildSegment;
 
         [KSPField(guiActive = true,
