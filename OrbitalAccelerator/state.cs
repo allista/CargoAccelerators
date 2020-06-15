@@ -13,6 +13,7 @@ namespace CargoAccelerators
             EJECT,
             LAUNCH,
             ABORT,
+            FINISH_LAUNCH,
             UNDER_CONSTRUCTION,
         }
 
@@ -90,6 +91,10 @@ namespace CargoAccelerators
                     loadingDamper.AutoEnable = false;
                     if(launchCoro == null)
                         launchCoro = StartCoroutine(launchPayload());
+                    break;
+                case AcceleratorState.FINISH_LAUNCH:
+                    if(launchingDamper.VesselsInside.Count == 0)
+                        changeState(AcceleratorState.IDLE);
                     break;
                 case AcceleratorState.ABORT:
                     if(launchCoro != null)

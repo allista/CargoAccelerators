@@ -509,7 +509,7 @@ energy: {energy}";
                         {
                             if(!maneuverIsComplete())
                                 continue;
-                            endLaunch();
+                            endLaunch(AcceleratorState.FINISH_LAUNCH);
                             UI.AddMessage("Launch succeeded.");
                             yield break;
                         }
@@ -524,7 +524,7 @@ energy: {energy}";
             }
         }
 
-        private void endLaunch(AcceleratorState nextState = AcceleratorState.IDLE)
+        private void endLaunch(AcceleratorState nextState)
         {
             launchCoro = null;
             if(preLaunchOrbit != null)

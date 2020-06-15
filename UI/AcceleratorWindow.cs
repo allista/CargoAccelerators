@@ -129,6 +129,7 @@ namespace CargoAccelerators.UI
                     Controller.launchButton.SetInteractable(false);
                     break;
                 case OrbitalAccelerator.AcceleratorState.LAUNCH:
+                case OrbitalAccelerator.AcceleratorState.FINISH_LAUNCH:
                     Controller.status.text = "Launch in progress";
                     Controller.status.color = Colors.Good;
                     Controller.acquirePayloadButton.SetInteractable(false);
