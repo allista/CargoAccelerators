@@ -559,6 +559,10 @@ energy: {energy}";
                         Utils.AddNodeRaw(vessel, dV, UT);
                     else
                         Utils.AddNodeRawToFlightPlanNode(vessel, dV, UT);
+                    vessel.Parts.ForEach(p =>
+                        p.SendMessage("ExecuteManeuverNode",
+                            null,
+                            SendMessageOptions.DontRequireReceiver));
                 }
                 preLaunchOrbit = null;
             }
