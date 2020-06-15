@@ -121,11 +121,9 @@
         <Content Include="CargoAccelerators.netkan" />
         <Content Include="ChangeLog.md" />
         <Content Include="GameData\CargoAccelerators\Parts\OrbitalAccelerator\OrbitalAccelerator.cfg" />
+        <Content Include="GameData\CargoAccelerators\Plugins\PluginData\CargoAccelerators\CargoAccelerators.glob" />
         <Content Include="make-release.sh" />
         <Content Include="README.md" />
-    </ItemGroup>
-    <ItemGroup>
-        <Folder Include="GameData\CargoAccelerators\Plugins" />
     </ItemGroup>
     <ItemGroup>
       <None Include="GameData\CargoAccelerators\Engineer.cfg" />
