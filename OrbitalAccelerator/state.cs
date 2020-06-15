@@ -22,14 +22,18 @@ namespace CargoAccelerators
             UI.UpdateState();
         }
 
+        private void destroyLaunchParams()
+        {
+            if(launchParams == null)
+                return;
+            launchParams.Cleanup();
+            launchParams = null;
+            UI.UpdatePayloadInfo();
+        }
+
         private void disableDampers()
         {
-            if(launchParams != null)
-            {
-                launchParams.Cleanup();
-                launchParams = null;
-                UI.UpdatePayloadInfo();
-            }
+            destroyLaunchParams();
             if(loadingDamper.DamperEnabled)
                 loadingDamper.EnableDamper(false);
             if(launchingDamper.DamperEnabled)
@@ -52,12 +56,7 @@ namespace CargoAccelerators
                     constructionUpdate();
                     break;
                 case AcceleratorState.IDLE:
-                    if(launchParams != null)
-                    {
-                        launchParams.Cleanup();
-                        launchParams = null;
-                        UI.UpdatePayloadInfo();
-                    }
+                    destroyLaunchParams();
                     if(launchingDamper.DamperEnabled)
                         launchingDamper.EnableDamper(false);
                     if(loadingDamper.VesselsInside.Count > 0)
