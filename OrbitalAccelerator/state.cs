@@ -151,16 +151,15 @@ namespace CargoAccelerators
             var relV = (launchParams.payload.obt_velocity
                         - vessel.obt_velocity).sqrMagnitude;
             var payloadAV = launchParams.payload.angularVelocity.sqrMagnitude;
-            var dist = (launchParams.payload.CurrentCoM
-                        - loadingDamper.attractor.position).magnitude;
+            var d = lateralDisplacement();
             UI.Controller.UpdatePayloadInfo((float)launchParams.maxDeltaV,
                 (float)Math.Sqrt(relV),
                 Mathf.Sqrt(payloadAV) * Mathf.Rad2Deg,
-                dist,
+                d,
                 launchParams.maxDeltaV > launchParams.nodeDeltaVm,
                 relV < GLB.MAX_RELATIVE_VELOCITY_SQR,
                 payloadAV < GLB.MAX_ANGULAR_VELOCITY_SQR,
-                dist < GLB.MAX_DISPLACEMENT);
+                d < GLB.MAX_DISPLACEMENT);
         }
     }
 }

@@ -336,6 +336,12 @@ energy: {energy}";
             return minAccelerationTolerance * Utils.G0 * 0.98;
         }
 
+        private float lateralDisplacement()
+        {
+            var d = launchParams.payload.CurrentCoM - launchingDamper.attractor.position;
+            return Vector3.ProjectOnPlane(d, launchingDamper.attractorAxisW).magnitude;
+        }
+
         /// <summary>
         /// This check, whenever failed, aborts the launch.
         /// </summary>
@@ -397,13 +403,11 @@ energy: {energy}";
                     UI.AddMessage("Payload is moving.");
                 return false;
             }
-            if((launchParams.payload.CurrentCoM
-                - loadingDamper.attractor.position).magnitude
-               > GLB.MAX_DISPLACEMENT)
+            if(lateralDisplacement() > GLB.MAX_DISPLACEMENT)
             {
                 if(postStatus)
                     UI.AddMessage(
-                        "Payload is not at the launch position.");
+                        "Payload is not at the center of the channel.");
                 return false;
             }
             return true;
