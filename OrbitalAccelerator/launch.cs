@@ -51,6 +51,12 @@ namespace CargoAccelerators
                 payloadRanges = payload.SetUnpackDistance(distance);
             }
 
+            public void SwitchToPayload()
+            {
+                if(payload != null && FlightGlobals.ActiveVessel != payload)
+                    FlightGlobals.ForceSetActiveVessel(payload);
+            }
+
             public void Cleanup()
             {
                 if(payloadRanges == null || payload == null)
@@ -490,6 +496,7 @@ energy: {energy}";
                 abortLaunchInternal(nextState: AcceleratorState.LOADED);
                 yield break;
             }
+            launchParams.SwitchToPayload();
             foreach(var controlPoint in controlPoints)
             {
                 yield return StartCoroutine(checkAndWait(controlPoint));
@@ -514,6 +521,7 @@ energy: {energy}";
             launchingDamper.AttractorPower = (float)launchParams.acceleration;
             launchingDamper.Fields.SetValue<float>(nameof(ATMagneticDamper.Attenuation), 0);
             launchingDamper.EnableDamper(true);
+            launchParams.SwitchToPayload();
             while(true)
             {
                 yield return new WaitForFixedUpdate();
@@ -526,6 +534,7 @@ energy: {energy}";
                 {
                     case 0:
                         abortLaunchInternal("Payload left the accelerator.");
+                        sendExecuteManeuver(launchParams.payload);
                         yield break;
                     case 1:
                         var vesselId = launchingDamper.VesselsInside.First();
@@ -548,6 +557,14 @@ energy: {energy}";
             }
         }
 
+        private static void sendExecuteManeuver(IShipconstruct vsl)
+        {
+            vsl.Parts.ForEach(p =>
+                p.SendMessage("ExecuteManeuverNode",
+                    null,
+                    SendMessageOptions.DontRequireReceiver));
+        }
+
         private void endLaunch(AcceleratorState nextState)
         {
             launchCoro = null;
@@ -564,10 +581,7 @@ energy: {energy}";
                         Utils.AddNodeRaw(vessel, dV, UT);
                     else
                         Utils.AddNodeRawToFlightPlanNode(vessel, dV, UT);
-                    vessel.Parts.ForEach(p =>
-                        p.SendMessage("ExecuteManeuverNode",
-                            null,
-                            SendMessageOptions.DontRequireReceiver));
+                    sendExecuteManeuver(vessel);
                 }
                 preLaunchOrbit = null;
             }
