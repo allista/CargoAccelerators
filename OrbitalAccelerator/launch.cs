@@ -298,7 +298,8 @@ energy: {energy}";
             launchParams.acceleration = force / payloadMass;
             launchParams.maxDeltaV = launchParams.acceleration * launchParams.maxAccelerationTime;
             // compare projected max values to the required by the maneuver node
-            if(launchParams.nodeDeltaVm > launchParams.maxDeltaV)
+            var partialManeuver = launchParams.nodeDeltaVm > launchParams.maxDeltaV;
+            if(partialManeuver)
             {
                 var dV = Utils.formatBigValue((float)launchParams.maxDeltaV, "m/s");
                 var dVShortage =
@@ -315,8 +316,9 @@ energy: {energy}";
                 var timeShortage =
                     Utils.formatBigValue((float)(launchParams.duration - launchParams.maxAccelerationTime), "s");
                 var maxTime = Utils.formatBigValue((float)launchParams.maxAccelerationTime, "s");
-                UI.AddMessage(
-                    $"This accelerator is too short for the planned maneuver of the \"{launchParams.payloadTitle}\".\nMaximum possible acceleration time is {maxTime}, which is {timeShortage} less then required.");
+                if(!partialManeuver)
+                    UI.AddMessage(
+                        $"This accelerator is too short for the planned maneuver of the \"{launchParams.payloadTitle}\".\nMaximum possible acceleration time is {maxTime}, which is {timeShortage} less then required.");
                 if(!PartialLaunch)
                     return false;
                 launchParams.duration = launchParams.maxAccelerationTime;
