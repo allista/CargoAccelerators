@@ -93,6 +93,7 @@ namespace CargoAccelerators
                         launchCoro = StartCoroutine(launchPayload());
                     break;
                 case AcceleratorState.FINISH_LAUNCH:
+                    launchingDamper.AttractorEnabled = false;
                     if(launchingDamper.VesselsInside.Count == 0)
                         changeState(AcceleratorState.IDLE);
                     break;
