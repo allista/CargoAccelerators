@@ -50,6 +50,7 @@ namespace CargoAccelerators
                     break;
                 case AcceleratorState.LAUNCH:
                     UI.ClearMessages();
+                    TimeWarp.SetRate(0, false);
                     changeState(AcceleratorState.ABORT);
                     break;
             }
