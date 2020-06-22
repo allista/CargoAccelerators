@@ -72,6 +72,23 @@ namespace CargoAccelerators
                     : Vector3d.zero;
             }
 
+            public ManeuverNode GetManeuverNode()
+            {
+                if(payload == null || node?.nextPatch == null)
+                    return null;
+                var remainingDeltaV = node.nextPatch.GetFrameVelAtUT(node.UT)
+                                      - payload.orbit.GetFrameVelAtUT(node.UT);
+                var newNode = new ManeuverNode
+                {
+                    UT = node.UT,
+                    DeltaV = Utils.Orbital2NodeDeltaV(payload.orbit, remainingDeltaV, node.UT),
+                    patch = new Orbit(payload.orbit),
+                    nextPatch = new Orbit(node.nextPatch)
+                };
+                Utils.Debug($"new node: {newNode.ToConfigString()}\norbDeltaV: {Utils.Node2OrbitalDeltaV(newNode)}\nnode burn vector: {Utils.formatVector(node.GetBurnVector(payload.orbit))}\nnew node burn vec: {Utils.formatVector(newNode.GetBurnVector(payload.orbit))}");
+                return newNode;
+            }
+
             public bool AcquirePayload(uint vesselId)
             {
                 FlightGlobals.FindVessel(vesselId, out payload);
@@ -524,7 +541,7 @@ energy: {energy}";
                 {
                     case 0:
                         abortLaunchInternal("Payload left the accelerator.");
-                        sendExecuteManeuver(launchParams.payload);
+                        sendExecuteManeuver(launchParams.payload, launchParams.GetManeuverNode());
                         yield break;
                     case 1:
                         var vesselId = launchingDamper.VesselsInside.First();
@@ -547,11 +564,12 @@ energy: {energy}";
             }
         }
 
-        private static void sendExecuteManeuver(IShipconstruct vsl)
+        private static void sendExecuteManeuver(IShipconstruct vsl, ManeuverNode node = null)
         {
+            var arg = node ?? new object();
             vsl.Parts.ForEach(p =>
                 p.SendMessage("ExecuteManeuverNode",
-                    null,
+                    arg,
                     SendMessageOptions.DontRequireReceiver));
         }
 
