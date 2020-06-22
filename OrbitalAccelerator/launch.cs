@@ -67,8 +67,8 @@ namespace CargoAccelerators
             public Vector3d GetManeuverVector()
             {
                 return payload != null && node?.nextPatch != null
-                    ? (node.nextPatch.getOrbitalVelocityAtUT(node.UT)
-                       - payload.orbit.getOrbitalVelocityAtUT(node.UT)).xzy
+                    ? (node.nextPatch.GetFrameVelAtUT(node.UT)
+                       - payload.orbit.GetFrameVelAtUT(node.UT)).xzy
                     : Vector3d.zero;
             }
 
