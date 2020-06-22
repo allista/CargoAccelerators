@@ -136,7 +136,7 @@ namespace CargoAccelerators
                     for(int i = 0, len = nodes.Count; i < len; i++)
                     {
                         payloadNode = new ManeuverNode();
-                        payloadNode.Load(payload.flightPlanNode.nodes[0]);
+                        payloadNode.Load(nodes[0]);
                         if(payloadNode.UT <= now)
                             continue;
                         node = payloadNode;
