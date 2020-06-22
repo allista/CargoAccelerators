@@ -73,6 +73,7 @@ namespace CargoAccelerators
             connected = true;
         }
 
+        [SuppressMessage("ReSharper", "DelegateSubtraction")]
         public void Disconnect()
         {
             if(!connected || host == null || vessel == null)
