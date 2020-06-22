@@ -122,9 +122,10 @@ namespace CargoAccelerators
             yawController.Reset();
         }
 
-        private Vector3 getTorque()
+        private Vector3 getTorque(out Vector3 nonRCSTorque)
         {
             var torque = Vector6.zero;
+            var nonRCS = Vector6.zero;
             var locRot = Quaternion.Inverse(vessel.ReferenceTransform.rotation);
             var CoM = vessel.CurrentCoM;
             var partShielded = host.part.ShieldedFromAirstream;
@@ -168,8 +169,11 @@ namespace CargoAccelerators
                     }
                     torque.Add(pos);
                     torque.Add(-neg);
+                    nonRCS.Add(pos);
+                    nonRCS.Add(-neg);
                 }
             }
+            nonRCSTorque = nonRCS.Max;
             return torque.Max;
         }
 
@@ -187,16 +191,15 @@ namespace CargoAccelerators
             if(launchParams != null && launchParams.Valid && !launchParams.maneuverStarted)
             {
                 UpdateAttitudeError();
-                var timeToZero = new Vector2(AttitudeError.y / AV.x, AttitudeError.z / AV.y);
-                host.vessel.ActionGroups.SetGroup(KSPActionGroup.RCS,
-                    !(AttitudeError.x < GLB.MAX_ATTITUDE_ERROR * 3
-                      && timeToZero.x > GLB.MIN_TIME_TO_ZERO
-                      && timeToZero.y > GLB.MIN_TIME_TO_ZERO));
-                var torque = getTorque();
+                var torque = getTorque(out var nonRcsTorque);
                 var maxAA = Utils.AngularAcceleration(torque, vessel.MOI) * Mathf.Rad2Deg;
                 // x is direct error, y is pitch; see AttitudeError description
                 steering.x = pitchController.Update(AttitudeError.y, -AV.x, maxAA.x);
                 steering.z = yawController.Update(AttitudeError.z, -AV.z, maxAA.z);
+                // disable RCS to fine-tune attitude
+                host.vessel.ActionGroups.SetGroup(KSPActionGroup.RCS,
+                    AttitudeError.x > GLB.MAX_ATTITUDE_ERROR
+                    || nonRcsTorque.IsZero());
             }
             else
             {
