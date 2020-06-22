@@ -232,16 +232,6 @@ energy: {energy}";
             return true;
         }
 
-        private void clearManeuverNodes()
-        {
-            vessel.flightPlanNode.ClearData();
-            if(vessel.patchedConicSolver == null)
-                return;
-            var nodes = vessel.patchedConicSolver.maneuverNodes;
-            for(var i = nodes.Count - 1; i >= 0; i--)
-                nodes[i].RemoveSelf();
-        }
-
         private void acquirePayload()
         {
             UI.ClearMessages();
@@ -251,7 +241,7 @@ energy: {energy}";
                 UI.AddMessage(error);
                 return;
             }
-            clearManeuverNodes();
+            Utils.ClearManeuverNodes(vessel);
             launchParams = new LaunchParams(this);
             if(launchParams.AcquirePayload(vesselId.Value))
                 checkPayloadManeuver();
@@ -576,7 +566,7 @@ energy: {energy}";
                 dV = Utils.Orbital2NodeDeltaV(vessel.orbit, dV, UT);
                 if(!dV.IsZero())
                 {
-                    clearManeuverNodes();
+                    Utils.ClearManeuverNodes(vessel);
                     if(vessel.patchedConicSolver != null)
                         Utils.AddNodeRaw(vessel, dV, UT);
                     else
