@@ -276,17 +276,17 @@ namespace CargoAccelerators
 
         private Coroutine inertiaTensorUpdater;
 
-        private void updateInertiaTensor()
+        private IEnumerator<YieldInstruction> updateInertiaTensor()
         {
+            yield return new WaitForFixedUpdate();
             part.UpdateInertiaTensor();
             inertiaTensorUpdater = null;
         }
 
         private void delayedUpdateInertiaTensor()
         {
-            if(inertiaTensorUpdater != null)
-                return;
-            inertiaTensorUpdater = StartCoroutine(CallbackUtil.DelayedCallback(1, updateInertiaTensor));
+            if(inertiaTensorUpdater == null)
+                inertiaTensorUpdater = StartCoroutine(updateInertiaTensor());
         }
 
         private void updateVesselSize()
