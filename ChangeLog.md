@@ -1,10 +1,34 @@
 #Cargo Accelerators ChangeLog
 
-* **v0.1.0.2**
+* **v0.2.0.0**
+    * Added **in-orbit barrel construction**
+        * Construction is started by pressing a button in PAW.
+        * This deactivates the accelerator and creates construction
+        scaffold on the end of the barrel that is gradually deployed
+        (the scaffold slowly grows in length).
+        * Required resources are configured per accelerator.
+        * Current Orbital Accelerator requires 
+            * Material Kits - 95% of the mass of a segment
+            * Specialized Parts - 10% of the mass of a segment
+            * Electric Charge - 1000 units per ton
+        * Construction also requires qualified Engineers on board
+        * To provide both resources and workers the construction
+        scaffold has (an invisible) docking port on its end.
+    * Added **Partial Launch** mode
+        * It is activated in the PAW of the accelerator
+        * It allows to perform the launch even if the accelerator
+        cannot provide the required dV
+        * **But** if you have **TCA** installed and the payload has
+        its own thrusters, the accelerator will instruct the TCA of
+        the payload to continue the maneuver.
+    * If **TCA** is installed, the recoil compensation is done by the
+    accelerator automatically.
+
+* v0.1.0.2
     * Fixed UI disappearing after scene switch
     * Compiled against AT_Utils 1.9.3
 
-* **v0.1.0.1**
+* v0.1.0.1
     * **Compatible with KSP-1.9**
     * Compiled against AT_Utils 1.9.2
 
