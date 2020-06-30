@@ -274,20 +274,11 @@ namespace CargoAccelerators
             part.CoMOffset = part.partTransform.InverseTransformDirection(CoM / part.mass);
         }
 
-        private static readonly FieldInfo partInertiaTensorFI = typeof(Part).GetField(
-            "inertiaTensor",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-
         private Coroutine inertiaTensorUpdater;
 
         private void updateInertiaTensor()
         {
-            if(part.rb != null)
-            {
-                part.rb.ResetInertiaTensor();
-                var inertiaTensor = part.rb.inertiaTensor / Mathf.Max(1f, part.rb.mass);
-                partInertiaTensorFI.SetValue(part, inertiaTensor);
-            }
+            part.UpdateInertiaTensor();
             inertiaTensorUpdater = null;
         }
 
