@@ -227,7 +227,9 @@ namespace CargoAccelerators
                     }
                     segmentScaffold.SetActive(true);
                     resetRendererCaches();
+#if DEBUG
                     this.Debug($"Scaffold instance tree: {DebugUtils.formatTransformTree(segmentScaffold.transform)}");
+#endif
                 }
                 if(newDeploymentProgress < 1 && !removeDockingNode())
                     return false;
