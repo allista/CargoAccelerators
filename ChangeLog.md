@@ -1,6 +1,9 @@
 #Cargo Accelerators ChangeLog
 
-* **v0.2.0.0**
+* **v0.2.0.1**
+    * Compiled against KSP-1.10
+
+* v0.2.0.0
     * Added **in-orbit barrel construction**
         * Construction is started by pressing a button in PAW.
         * This deactivates the accelerator and creates construction
