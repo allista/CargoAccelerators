@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using AT_Utils;
 using AT_Utils.UI;
@@ -24,6 +25,7 @@ namespace CargoAccelerators.UI
             Controller.acquirePayloadButton.onClick.AddListener(accelerator.AcquirePayload);
             Controller.ejectPayloadButton.onClick.AddListener(accelerator.EjectPayload);
             Controller.abortButton.onClick.AddListener(accelerator.AbortOperations);
+            Controller.autoAlignToggle.SetIsOnAndColorWithoutNotify(accelerator.AutoAlignEnabled);
             Controller.autoAlignToggle.onValueChanged.AddListener(accelerator.ToggleAutoAlign);
             Controller.launchButton.onClick.AddListener(accelerator.LaunchPayload);
             Controller.title.text = accelerator.Title();
@@ -88,6 +90,14 @@ namespace CargoAccelerators.UI
             var hasPayload = launchParams != null && launchParams.Valid;
             switch(accelerator.State)
             {
+                case OrbitalAccelerator.AcceleratorState.UNDER_CONSTRUCTION:
+                    Controller.status.text = "Accelerator is under construction";
+                    Controller.status.color = Colors.Warning;
+                    Controller.acquirePayloadButton.SetInteractable(false);
+                    Controller.abortButton.SetInteractable(false);
+                    Controller.ejectPayloadButton.SetInteractable(false);
+                    Controller.launchButton.SetInteractable(false);
+                    break;
                 case OrbitalAccelerator.AcceleratorState.IDLE:
                     Controller.status.text = "Accelerator is idle";
                     Controller.status.color = Colors.Neutral;
@@ -119,6 +129,7 @@ namespace CargoAccelerators.UI
                     Controller.launchButton.SetInteractable(false);
                     break;
                 case OrbitalAccelerator.AcceleratorState.LAUNCH:
+                case OrbitalAccelerator.AcceleratorState.FINISH_LAUNCH:
                     Controller.status.text = "Launch in progress";
                     Controller.status.color = Colors.Good;
                     Controller.acquirePayloadButton.SetInteractable(false);
@@ -134,6 +145,8 @@ namespace CargoAccelerators.UI
                     Controller.ejectPayloadButton.SetInteractable(false);
                     Controller.launchButton.SetInteractable(false);
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 

@@ -3,8 +3,8 @@ using AT_Utils;
 
 namespace CargoAccelerators
 {
-    [SuppressMessage("ReSharper", "ConvertToConstant.Global")]
-    [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
+    [SuppressMessage("ReSharper", "ConvertToConstant.Global"),
+     SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
     public class Globals : PluginGlobals<Globals>
     {
         public readonly UIBundle AssetBundle = new UIBundle("CargoAccelerators/ca_ui.ksp");
@@ -19,5 +19,13 @@ namespace CargoAccelerators
         [Persistent] public float MAX_DISPLACEMENT = 0.1f; //m
         [Persistent] public float MANEUVER_DELTA_V_TOL = 0.01f;
         [Persistent] public int FINE_TUNE_FRAMES = 3;
+
+        /// <summary>
+        /// The part of the half of the maneuver duration within which it is still ok to launch
+        /// </summary>
+        [Persistent]
+        public float LAUNCH_WINDOW = 0.2f;
+
+        [Persistent] public bool TestingMode = false;
     }
 }

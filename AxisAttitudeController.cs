@@ -73,6 +73,7 @@ namespace CargoAccelerators
             connected = true;
         }
 
+        [SuppressMessage("ReSharper", "DelegateSubtraction")]
         public void Disconnect()
         {
             if(!connected || host == null || vessel == null)
@@ -85,6 +86,12 @@ namespace CargoAccelerators
 
         public void UpdateAttitudeError()
         {
+            if(launchParams == null || !launchParams.Valid)
+            {
+                AttitudeError = Vector3.zero;
+                Aligned = true;
+                return;
+            }
             var nodeBurnVector = launchParams.GetManeuverVector();
             var axis = launchingDamper.attractorAxisW;
             var attitudeError = Utils.Angle2((Vector3)nodeBurnVector, axis);
@@ -116,9 +123,10 @@ namespace CargoAccelerators
             yawController.Reset();
         }
 
-        private Vector3 getTorque()
+        private Vector3 getTorque(out Vector3 nonRCSTorque)
         {
             var torque = Vector6.zero;
+            var nonRCS = Vector6.zero;
             var locRot = Quaternion.Inverse(vessel.ReferenceTransform.rotation);
             var CoM = vessel.CurrentCoM;
             var partShielded = host.part.ShieldedFromAirstream;
@@ -162,8 +170,11 @@ namespace CargoAccelerators
                     }
                     torque.Add(pos);
                     torque.Add(-neg);
+                    nonRCS.Add(pos);
+                    nonRCS.Add(-neg);
                 }
             }
+            nonRCSTorque = nonRCS.Max;
             return torque.Max;
         }
 
@@ -178,14 +189,18 @@ namespace CargoAccelerators
                 return;
             steering.Zero();
             var AV = vessel.angularVelocity * Mathf.Rad2Deg;
-            if(launchParams != null && !launchParams.maneuverStarted)
+            if(launchParams != null && launchParams.Valid && !launchParams.maneuverStarted)
             {
                 UpdateAttitudeError();
-                var torque = getTorque();
+                var torque = getTorque(out var nonRcsTorque);
                 var maxAA = Utils.AngularAcceleration(torque, vessel.MOI) * Mathf.Rad2Deg;
                 // x is direct error, y is pitch; see AttitudeError description
                 steering.x = pitchController.Update(AttitudeError.y, -AV.x, maxAA.x);
                 steering.z = yawController.Update(AttitudeError.z, -AV.z, maxAA.z);
+                // disable RCS to fine-tune attitude
+                host.vessel.ActionGroups.SetGroup(KSPActionGroup.RCS,
+                    AttitudeError.x > GLB.MAX_ATTITUDE_ERROR
+                    || nonRcsTorque.IsZero());
             }
             else
             {

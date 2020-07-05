@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using AT_Utils;
 
 // General Information about an assembly is controlled through the following 
@@ -27,11 +26,11 @@ using AT_Utils;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 #if NIGHTBUILD
-[assembly: AssemblyVersion("0.1.*")]
+[assembly: AssemblyVersion("0.2.*")]
 #else
-[assembly: AssemblyVersion("0.1.0.2")]
+[assembly: AssemblyVersion("0.2.0")]
 #endif
-[assembly: KSPAssembly("CargoAccelerators", 0, 1)]
+[assembly: KSPAssembly("CargoAccelerators", 0, 2)]
 
 
 namespace CargoAccelerators
