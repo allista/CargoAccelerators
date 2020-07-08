@@ -20,6 +20,7 @@ namespace CargoAccelerators.UI
 
         protected override void init_controller()
         {
+            base.init_controller();
             Controller.closeButton.onClick.AddListener(close);
             Controller.colorsButton.onClick.AddListener(toggleColors);
             Controller.acquirePayloadButton.onClick.AddListener(accelerator.AcquirePayload);
