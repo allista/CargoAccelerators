@@ -26,7 +26,7 @@ namespace CargoAccelerators
             var info = StringBuilderCache.Acquire();
             segmentsInfo(info);
             constructionInfo(info);
-            return info.ToStringAndRelease();
+            return info.ToStringAndRelease().Trim();
         }
 
         public override void OnAwake()
