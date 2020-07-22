@@ -55,7 +55,7 @@ namespace CargoAccelerators.UI
                 return;
             if(messages.Count > 0)
             {
-                Controller.message.text = string.Join("\n", messages);
+                Controller.message.text = string.Join("\n\n", messages);
                 Controller.messagePanel.gameObject.SetActive(true);
 #if DEBUG
                 Utils.Log(Controller.message.text);
