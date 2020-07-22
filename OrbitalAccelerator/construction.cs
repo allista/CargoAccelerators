@@ -318,7 +318,7 @@ namespace CargoAccelerators
             foreach(var r in Inputs)
                 info.AppendLine($"- {r.GetInfo(forMass)}");
             info.AppendLine($"- Total cost: {Utils.formatBigValue(CostPerMass * forMass, "£")}");
-            return info.ToStringAndRelease();
+            return info.ToStringAndRelease().Trim();
         }
 
         public double ProduceMass(Part fromPart, double work, out double trashMass)

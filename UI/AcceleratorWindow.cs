@@ -20,6 +20,7 @@ namespace CargoAccelerators.UI
 
         protected override void init_controller()
         {
+            base.init_controller();
             Controller.closeButton.onClick.AddListener(close);
             Controller.colorsButton.onClick.AddListener(toggleColors);
             Controller.acquirePayloadButton.onClick.AddListener(accelerator.AcquirePayload);
@@ -54,7 +55,7 @@ namespace CargoAccelerators.UI
                 return;
             if(messages.Count > 0)
             {
-                Controller.message.text = string.Join("\n", messages);
+                Controller.message.text = string.Join("\n\n", messages);
                 Controller.messagePanel.gameObject.SetActive(true);
 #if DEBUG
                 Utils.Log(Controller.message.text);

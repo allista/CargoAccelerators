@@ -1,6 +1,12 @@
-#Cargo Accelerators ChangeLog
+# Cargo Accelerators ChangeLog
 
-* **v0.2.0.1**
+
+* **v0.2.1**
+    * Separating messages in InfoPane with additional empty line
+    * Moved InfoPane to its own prefab in AT_Utils.UI
+    * Adapted to changes in AT_Utils
+
+* v0.2.0.1
     * Compiled against KSP-1.10
 
 * v0.2.0.0
