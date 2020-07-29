@@ -128,6 +128,7 @@ namespace CargoAccelerators
         {
             rendererlistscreated_FI.SetValue(part, false);
             part.ResetModelSkinnedMeshRenderersCache();
+            part.ResetModelMeshRenderersCache();
             part.ResetModelRenderersCache();
         }
 
