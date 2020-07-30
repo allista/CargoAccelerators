@@ -28,7 +28,7 @@ using AT_Utils;
 #if NIGHTBUILD
 [assembly: AssemblyVersion("0.2.*")]
 #else
-[assembly: AssemblyVersion("0.2.1")]
+[assembly: AssemblyVersion("0.2.1.1")]
 #endif
 [assembly: KSPAssembly("CargoAccelerators", 0, 2)]
 

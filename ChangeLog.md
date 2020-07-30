@@ -1,6 +1,10 @@
 # Cargo Accelerators ChangeLog
 
 
+* **v0.2.1.1**
+    * Compiled against AT_Utils-1.9.6
+    * Project maintenance and minor fixes
+
 * **v0.2.1**
     * Separating messages in InfoPane with additional empty line
     * Moved InfoPane to its own prefab in AT_Utils.UI
