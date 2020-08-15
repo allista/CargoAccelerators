@@ -12,7 +12,7 @@ namespace CargoAccelerators
             guiName = "Accelerator Controls",
             guiActive = true,
             guiActiveUnfocused = true,
-            unfocusedRange = 50)]
+            unfocusedRange = 500)]
         [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Enabled", disabledText = "Disabled")]
         public bool ShowUI;
 

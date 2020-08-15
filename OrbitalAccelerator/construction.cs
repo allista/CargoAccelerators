@@ -30,7 +30,7 @@ namespace CargoAccelerators
             guiName = "Build next segment",
             guiActive = true,
             guiActiveUnfocused = true,
-            unfocusedRange = 50)]
+            unfocusedRange = 500)]
         [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Constructing", disabledText = "Off")]
         public bool BuildSegment;
 
@@ -39,14 +39,18 @@ namespace CargoAccelerators
             groupName = "OrbitalAcceleratorGroup",
             groupDisplayName = "Orbital Accelerator",
             guiName = "Construction Progress",
-            guiFormat = "P1")]
+            guiFormat = "P1",
+            guiActiveUnfocused = true,
+            unfocusedRange = 500)]
         public float ConstructionProgress;
 
         [KSPField(isPersistant = true,
             guiActive = true,
             guiName = "Construction",
             groupName = "OrbitalAcceleratorGroup",
-            groupDisplayName = "Orbital Accelerator")]
+            groupDisplayName = "Orbital Accelerator",
+            guiActiveUnfocused = true,
+            unfocusedRange = 500)]
         private ConstructionState constructionState = ConstructionState.IDLE;
 
         [KSPField(isPersistant = true)] private float deploymentProgress = -1;
