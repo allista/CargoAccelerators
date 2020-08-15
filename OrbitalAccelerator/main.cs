@@ -11,6 +11,7 @@ namespace CargoAccelerators
 
         [KSPField] public string LoadingDamperID = "LoadingDamper";
         [KSPField] public string LaunchingDamperID = "LaunchingDamper";
+        [KSPField] public float MaxConnectionDistance = 300;
 
         [KSPField(isPersistant = true)] public AcceleratorState State = AcceleratorState.IDLE;
         [KSPField(isPersistant = true)] public bool AutoAlignEnabled;

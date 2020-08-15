@@ -249,7 +249,7 @@ energy: {energy}";
             return true;
         }
 
-        private void acquirePayload()
+        private void acquireLoadedPayload()
         {
             UI.ClearMessages();
             var vesselId = getLoadedVesselId(out var error);
@@ -258,9 +258,15 @@ energy: {energy}";
                 UI.AddMessage(error);
                 return;
             }
+            acquirePayload(vesselId.Value);
+        }
+
+        private void acquirePayload(uint vesselId)
+        {
+            UI.ClearMessages();
             Utils.ClearManeuverNodes(vessel);
             launchParams = new LaunchParams(this);
-            if(launchParams.AcquirePayload(vesselId.Value))
+            if(launchParams.AcquirePayload(vesselId))
                 checkPayloadManeuver();
 #if DEBUG
             this.Debug(launchParams.ToString());

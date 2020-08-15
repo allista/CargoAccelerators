@@ -26,10 +26,19 @@ namespace CargoAccelerators
 
         public void AcquirePayload()
         {
-            if(State != AcceleratorState.LOADED)
-                return;
-            UI.ClearMessages();
-            changeState(AcceleratorState.ACQUIRE_PAYLOAD);
+            // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+            switch(State)
+            {
+                case AcceleratorState.LOADED:
+                    UI.ClearMessages();
+                    changeState(AcceleratorState.ACQUIRE_PAYLOAD);
+                    break;
+                case AcceleratorState.IDLE:
+                case AcceleratorState.CONNECTED:
+                    UI.ClearMessages();
+                    changeState(AcceleratorState.CONNECT_TO_PAYLOAD);
+                    break;
+            }
         }
 
         public void EjectPayload()
@@ -42,6 +51,7 @@ namespace CargoAccelerators
 
         public void AbortOperations()
         {
+            // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch(State)
             {
                 case AcceleratorState.EJECT:

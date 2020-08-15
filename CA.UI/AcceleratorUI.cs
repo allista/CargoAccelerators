@@ -30,7 +30,8 @@ namespace CA.UI
             angularVelocity,
             displacement,
             message,
-            status;
+            status,
+            acquirePayloadButtonText;
 
         public RectTransform messagePanel;
         public ClickableLabel messagePanelController;

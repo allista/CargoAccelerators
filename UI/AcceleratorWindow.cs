@@ -89,6 +89,7 @@ namespace CargoAccelerators.UI
             if(Controller == null || accelerator == null)
                 return;
             var hasPayload = launchParams != null && launchParams.Valid;
+            Controller.acquirePayloadButtonText.text = "Reconnect";
             switch(accelerator.State)
             {
                 case OrbitalAccelerator.AcceleratorState.UNDER_CONSTRUCTION:
@@ -98,11 +99,23 @@ namespace CargoAccelerators.UI
                     Controller.abortButton.SetInteractable(false);
                     Controller.ejectPayloadButton.SetInteractable(false);
                     Controller.launchButton.SetInteractable(false);
+                    Controller.acquirePayloadButtonText.text = "Connect";
                     break;
                 case OrbitalAccelerator.AcceleratorState.IDLE:
                     Controller.status.text = "Accelerator is idle";
                     Controller.status.color = Colors.Neutral;
-                    Controller.acquirePayloadButton.SetInteractable(false);
+                    Controller.acquirePayloadButton.SetInteractable(true);
+                    Controller.abortButton.SetInteractable(false);
+                    Controller.ejectPayloadButton.SetInteractable(false);
+                    Controller.launchButton.SetInteractable(false);
+                    Controller.acquirePayloadButtonText.text = "Connect";
+                    break;
+                case OrbitalAccelerator.AcceleratorState.CONNECTED:
+                    Controller.status.text = hasPayload
+                        ? "Remote connection with the payload"
+                        : "";
+                    Controller.status.color = Colors.Warning;
+                    Controller.acquirePayloadButton.SetInteractable(true);
                     Controller.abortButton.SetInteractable(false);
                     Controller.ejectPayloadButton.SetInteractable(false);
                     Controller.launchButton.SetInteractable(false);
@@ -117,6 +130,7 @@ namespace CargoAccelerators.UI
                     Controller.ejectPayloadButton.SetInteractable(true);
                     Controller.launchButton.SetInteractable(hasPayload);
                     break;
+                case OrbitalAccelerator.AcceleratorState.CONNECT_TO_PAYLOAD:
                 case OrbitalAccelerator.AcceleratorState.ACQUIRE_PAYLOAD:
                     Controller.status.text = "Establishing connection with the payload";
                     Controller.status.color = Colors.Neutral;
