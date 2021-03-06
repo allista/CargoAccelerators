@@ -35,6 +35,8 @@
     <ItemGroup>
         <Compile Include="AcceleratorUI.cs" />
         <Compile Include="AssemblyInfo.cs" />
+        <Compile Include="ConstructionUI.cs" />
+        <Compile Include="ResourceInfoUI.cs" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\AT_Utils\Unity\AT_Utils.UI.csproj">
