@@ -44,11 +44,6 @@ namespace CargoAccelerators.UI
                 Close();
         }
 
-        private void toggleColors()
-        {
-            Controller.ToggleStylesUI();
-        }
-
         private void updateMessage()
         {
             if(Controller == null)
