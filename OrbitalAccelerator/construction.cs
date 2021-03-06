@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using AT_Utils;
@@ -9,7 +10,7 @@ namespace CargoAccelerators
 {
     public partial class OrbitalAccelerator
     {
-        private enum ConstructionState
+        public enum ConstructionState
         {
             IDLE,
             DEPLOYING,
@@ -27,39 +28,45 @@ namespace CargoAccelerators
         [KSPField(isPersistant = true,
             groupName = "OrbitalAcceleratorGroup",
             groupDisplayName = "Orbital Accelerator",
-            guiName = "Build next segment",
+            guiName = "Construction Controls",
             guiActive = true,
             guiActiveUnfocused = true,
+            guiActiveEditor = true,
             unfocusedRange = 500)]
-        [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Constructing", disabledText = "Off")]
-        public bool BuildSegment;
+        [UI_Toggle(scene = UI_Scene.All, enabledText = "Enabled", disabledText = "Disabled")]
+        public bool ShowConstructionUI;
 
-        [UsedImplicitly]
-        [KSPField(guiActive = true,
-            groupName = "OrbitalAcceleratorGroup",
-            groupDisplayName = "Orbital Accelerator",
-            guiName = "Construction Progress",
-            guiFormat = "P1",
-            guiActiveUnfocused = true,
-            unfocusedRange = 500)]
-        public float ConstructionProgress;
+        [field: KSPField(isPersistant = true)]
+        public ConstructionState cState { get; private set; } = ConstructionState.IDLE;
 
-        [KSPField(isPersistant = true,
-            guiActive = true,
-            guiName = "Construction",
-            groupName = "OrbitalAcceleratorGroup",
-            groupDisplayName = "Orbital Accelerator",
-            guiActiveUnfocused = true,
-            unfocusedRange = 500)]
-        private ConstructionState constructionState = ConstructionState.IDLE;
+        [field: KSPField(isPersistant = true)] public float DeploymentProgress { get; private set; } = -1;
+        [field: KSPField(isPersistant = true)] public double ConstructedMass { get; private set; }
 
-        [KSPField(isPersistant = true)] private float deploymentProgress = -1;
-        [KSPField(isPersistant = true)] private double constructedMass;
         [KSPField(isPersistant = true)] private double trashMass;
 
-        private float workforce;
+        public float Workforce { get; private set; }
         private double lastConstructionUT = -1;
         private const double maxTimeStep = 3600.0;
+
+        public bool CanConstruct =>
+            (State == AcceleratorState.IDLE || State == AcceleratorState.UNDER_CONSTRUCTION)
+            && cState != ConstructionState.FINISHED
+            && cState != ConstructionState.ABORTED;
+
+        public bool CanAbortConstruction => cState != ConstructionState.IDLE;
+
+        public double GetRemainingConstructionTime() =>
+            constructionRecipe != null && constructionRecipe.MassProduction > 0 && Workforce > 0
+                ? (SegmentMass - ConstructedMass) / constructionRecipe.MassProduction / Workforce
+                : double.NaN;
+
+        private void showConstructionUI(object value)
+        {
+            if(ShowConstructionUI)
+                cUI.Show(this);
+            else
+                cUI.Close();
+        }
 
         private void constructionInfo(StringBuilder info)
         {
@@ -73,7 +80,7 @@ namespace CargoAccelerators
         }
 
         private void updateWorkforce() =>
-            workforce = vessel != null
+            Workforce = vessel != null
                 ? ConstructionUtils.VesselWorkforce<ConstructionSkill>(vessel, SpecialistMinWorkforce)
                 : 0;
 
@@ -87,7 +94,6 @@ namespace CargoAccelerators
                 constructionRecipe = ConfigNodeObject.FromConfig<ConstructionRecipe>(recipeNode);
             else
                 this.Error($"Unable to find {nameof(constructionRecipe)} node in: {node}");
-            ConstructionProgress = (float)constructedMass / SegmentMass;
         }
 
         private void saveConstructionState(ConfigNode node)
@@ -97,46 +103,38 @@ namespace CargoAccelerators
 
         private void fixConstructionState()
         {
-            this.Debug($"deployment {deploymentProgress}, State {State}, C.State {constructionState}");
-            if(deploymentProgress < 0)
+            this.Debug($"deployment {DeploymentProgress}, State {State}, C.State {cState}");
+            if(DeploymentProgress < 0)
                 return;
             if(State != AcceleratorState.UNDER_CONSTRUCTION)
                 changeState(AcceleratorState.UNDER_CONSTRUCTION);
-            if(deploymentProgress < 1)
-                constructionState = ConstructionState.DEPLOYING;
-            else if(constructionState == ConstructionState.IDLE)
-                constructionState = ConstructionState.PAUSE;
-            this.Debug($"State {State}, C.State {constructionState}");
+            if(cState == ConstructionState.IDLE)
+                cState = ConstructionState.PAUSE;
+            this.Debug($"State {State}, C.State {cState}");
         }
 
-        private void onBuildSegmentChange(object value)
+        public void StartConstruction()
         {
-            startConstruction();
-        }
-
-        private void startConstruction()
-        {
-            BuildSegment = false;
             if(constructionRecipe == null)
                 return;
             // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
             switch(State)
             {
-                case AcceleratorState.IDLE when constructionState == ConstructionState.IDLE:
+                case AcceleratorState.IDLE when cState == ConstructionState.IDLE:
                     UI.ClearMessages();
-                    BuildSegment = true;
-                    deploymentProgress = 0;
-                    constructedMass = 0;
+                    DeploymentProgress = 0;
+                    ConstructedMass = 0;
                     lastConstructionUT = -1;
-                    ConstructionProgress = 0;
-                    constructionState = ConstructionState.DEPLOYING;
+                    cState = ConstructionState.DEPLOYING;
                     changeState(AcceleratorState.UNDER_CONSTRUCTION);
                     updateWorkforce();
                     return;
-                case AcceleratorState.UNDER_CONSTRUCTION when constructionState == ConstructionState.PAUSE:
-                    constructionState = constructedMass < SegmentMass
-                        ? ConstructionState.CONSTRUCTING
-                        : ConstructionState.FINISHED;
+                case AcceleratorState.UNDER_CONSTRUCTION when cState == ConstructionState.PAUSE:
+                    cState = DeploymentProgress >= 0 && DeploymentProgress < 1
+                        ? ConstructionState.DEPLOYING
+                        : ConstructedMass < SegmentMass
+                            ? ConstructionState.CONSTRUCTING
+                            : ConstructionState.FINISHED;
                     updateWorkforce();
                     return;
                 default:
@@ -144,9 +142,9 @@ namespace CargoAccelerators
             }
         }
 
-        private void stopConstruction(string message = null)
+        public void StopConstruction(string message = null)
         {
-            constructionState = constructedMass < SegmentMass
+            cState = ConstructedMass < SegmentMass
                 ? ConstructionState.PAUSE
                 : ConstructionState.FINISHED;
             TimeWarp.SetRate(0, false);
@@ -156,46 +154,39 @@ namespace CargoAccelerators
 
         private void constructionUpdate()
         {
-            switch(constructionState)
+            switch(cState)
             {
                 case ConstructionState.IDLE:
-                    BuildSegment = false;
                     break;
                 case ConstructionState.DEPLOYING:
-                    BuildSegment = true;
-                    if(deploymentProgress < 1)
+                    if(DeploymentProgress < 1)
                     {
-                        updateScaffold(deploymentProgress + TimeWarp.deltaTime / ScaffoldDeployTime);
+                        updateScaffold(DeploymentProgress + TimeWarp.deltaTime / ScaffoldDeployTime);
                         updateVesselSize();
                         break;
                     }
-                    constructionState = ConstructionState.PAUSE;
+                    cState = ConstructionState.PAUSE;
                     break;
                 case ConstructionState.PAUSE:
-                    BuildSegment = false;
                     break;
                 case ConstructionState.CONSTRUCTING:
-                    BuildSegment = true;
-                    ConstructionProgress = (float)constructedMass / SegmentMass;
                     break;
                 case ConstructionState.FINISHED:
-                    BuildSegment = false;
-                    ConstructionProgress = 1;
                     if(!updateScaffold(-1))
                     {
-                        constructionState = ConstructionState.PAUSE;
+                        cState = ConstructionState.PAUSE;
                         break;
                     }
                     if(!updateSegments((int)numSegments + 1))
                     {
                         updateScaffold(1);
-                        constructionState = ConstructionState.PAUSE;
+                        cState = ConstructionState.PAUSE;
                         break;
                     }
                     trashMass = 0;
-                    constructedMass = 0;
-                    ConstructionProgress = 0;
-                    constructionState = ConstructionState.IDLE;
+                    ConstructedMass = 0;
+                    DeploymentProgress = -1;
+                    cState = ConstructionState.IDLE;
                     changeState(AcceleratorState.IDLE);
                     UpdateParams();
                     break;
@@ -206,35 +197,35 @@ namespace CargoAccelerators
 
         private void constructionFixedUpdate()
         {
-            if(constructionState != ConstructionState.CONSTRUCTING)
+            if(cState != ConstructionState.CONSTRUCTING)
                 return;
-            if(constructedMass >= SegmentMass)
-                stopConstruction("Segment construction finished");
+            if(ConstructedMass >= SegmentMass)
+                StopConstruction("Segment construction finished");
             if(constructionRecipe == null)
             {
-                stopConstruction("No construction blueprints are present");
+                StopConstruction("No construction blueprints are present");
                 return;
             }
-            if(workforce <= 0)
+            if(Workforce <= 0)
             {
-                stopConstruction("No qualified workers are present");
+                StopConstruction("No qualified workers are present");
                 return;
             }
             var dT = ConstructionUtils.GetDeltaTime(ref lastConstructionUT);
             if(dT <= 0)
                 return;
-            while(dT > 0 && constructedMass < SegmentMass)
+            while(dT > 0 && ConstructedMass < SegmentMass)
             {
                 var chunk = Math.Min(dT, maxTimeStep);
-                var work = Math.Min(workforce * chunk, constructionRecipe.RequiredWork(SegmentMass - constructedMass));
+                var work = Math.Min(Workforce * chunk, constructionRecipe.RequiredWork(SegmentMass - ConstructedMass));
                 var constructed = constructionRecipe.ProduceMass(part, work, out var trash);
                 trashMass += trash;
                 if(constructed <= 0)
                 {
-                    stopConstruction("Segment construction paused.\nNo enough resources.");
+                    StopConstruction("Segment construction paused.\nNo enough resources.");
                     break;
                 }
-                constructedMass += constructed;
+                ConstructedMass += constructed;
                 dT -= chunk;
             }
             updatePhysicsParams();
@@ -327,6 +318,18 @@ namespace CargoAccelerators
                 info.AppendLine($"- {r.GetInfo(forMass)}");
             info.AppendLine($"- Total cost: {Utils.formatBigValue(CostPerMass * forMass, "£")}");
             return info.ToStringAndRelease().Trim();
+        }
+
+        public IEnumerable<CA.UI.ResourceInfo> GetResourceInfos(float forMass)
+        {
+            foreach(var r in Inputs)
+            {
+                yield return new CA.UI.ResourceInfo
+                {
+                    name = r.def.displayName, unit = "u", amount = r.UnitsPerMass * forMass
+                };
+            }
+            yield return new CA.UI.ResourceInfo { name = "Total cost", unit = "£", amount = CostPerMass * forMass };
         }
 
         public double ProduceMass(Part fromPart, double work, out double trashMass)

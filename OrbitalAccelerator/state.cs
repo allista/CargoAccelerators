@@ -183,7 +183,12 @@ namespace CargoAccelerators
 
         private void LateUpdate()
         {
-            if(!HighLogic.LoadedSceneIsFlight || FlightDriver.Pause || !UI.IsShown)
+            if(FlightDriver.Pause)
+                return;
+            // construction UI
+            cUI.Update();
+            // controls UI
+            if(!HighLogic.LoadedSceneIsFlight || !UI.IsShown)
                 return;
             if(launchParams == null || !launchParams.Valid)
                 return;
@@ -198,7 +203,7 @@ namespace CargoAccelerators
             UI.Controller.UpdateCountdown(launchParams.launchUT
                                           - Planetarium.GetUniversalTime());
             // update payload checks
-            if(part.packed 
+            if(part.packed
                || State == AcceleratorState.CONNECTED)
                 return;
             var relV = (launchParams.payload.obt_velocity

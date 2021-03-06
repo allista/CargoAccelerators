@@ -7,15 +7,15 @@ namespace CargoAccelerators
     {
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            return barrelSegments.Count * SegmentMass + (float)(constructedMass + trashMass);
+            return barrelSegments.Count * SegmentMass + (float)(ConstructedMass + trashMass);
         }
 
         public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.CONSTANTLY;
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            if(constructedMass > 0)
-                return (barrelSegments.Count + (float)constructedMass / SegmentMass) * segmentCost;
+            if(ConstructedMass > 0)
+                return (barrelSegments.Count + (float)ConstructedMass / SegmentMass) * segmentCost;
             return barrelSegments.Count * segmentCost;
         }
 

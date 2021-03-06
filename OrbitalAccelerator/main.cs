@@ -17,6 +17,7 @@ namespace CargoAccelerators
         [KSPField(isPersistant = true)] public bool AutoAlignEnabled;
 
         private AcceleratorWindow UI;
+        private ConstructionWindow cUI;
         private AxisAttitudeController axisController;
         public ATMagneticDamper loadingDamper;
         public ExtensibleMagneticDamper launchingDamper;
@@ -56,11 +57,13 @@ namespace CargoAccelerators
             }
             Fields[nameof(numSegments)].OnValueModified -= onNumSegmentsChange;
             Fields[nameof(ShowUI)].OnValueModified -= showUI;
+            Fields[nameof(ShowConstructionUI)].OnValueModified -= showConstructionUI;
             GameEvents.onVesselWasModified.Remove(onVesselWasModified);
             GameEvents.onVesselCrewWasModified.Remove(onVesselCrewWasModified);
             axisController?.Disconnect();
             axisController = null;
             UI?.Close();
+            cUI?.Close();
         }
 
         public override void OnLoad(ConfigNode node)
@@ -97,21 +100,25 @@ namespace CargoAccelerators
                 this.ConfigurationInvalid($"Unable to find launching damper with ID {LoadingDamperID}");
                 return;
             }
-            if(!updateSegments((int)numSegments) || !updateScaffold(deploymentProgress))
+            if(!updateSegments((int)numSegments) || !updateScaffold(DeploymentProgress))
                 this.ConfigurationInvalid("Unable to initialize dynamic model components");
+            // num segments field controls for development
             var numSegmentsField = Fields[nameof(numSegments)];
             numSegmentsField.OnValueModified += onNumSegmentsChange;
             if(numSegmentsField.uiControlEditor is UI_FloatRange numSegmentsControlEditor)
                 numSegmentsControlEditor.maxValue = MaxSegments;
             if(numSegmentsField.uiControlFlight is UI_FloatRange numSegmentsControlFlight)
                 numSegmentsControlFlight.maxValue = MaxSegments;
+            numSegmentsField.guiActive = GLB.TestingMode;
             Fields[nameof(ShowUI)].OnValueModified += showUI;
-            Fields[nameof(BuildSegment)].OnValueModified += onBuildSegmentChange;
-            Fields[nameof(numSegments)].guiActive = GLB.TestingMode;
+            Fields[nameof(ShowConstructionUI)].OnValueModified += showConstructionUI;
             axisController = new AxisAttitudeController(this);
             UI = new AcceleratorWindow(this);
             if(ShowUI)
                 UI.Show(this);
+            cUI = new ConstructionWindow(this);
+            if(ShowConstructionUI)
+                cUI.Show(this);
             fixConstructionState();
             updateWorkforce();
             UpdateParams();

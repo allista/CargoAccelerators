@@ -240,8 +240,8 @@ namespace CargoAccelerators
                     Vector3.Lerp(ScaffoldStartScale, Vector3.one, newDeploymentProgress);
                 segmentScaffold.transform.hasChanged = true;
             }
-            deploymentProgress = newDeploymentProgress;
-            if(deploymentProgress >= 1)
+            DeploymentProgress = newDeploymentProgress;
+            if(DeploymentProgress >= 1)
             {
                 this.Debug($"Deployment finished. Docking node: {constructionPort.GetID()}");
                 setupDockingNode();
@@ -260,7 +260,7 @@ namespace CargoAccelerators
         private void updateCoMOffset()
         {
             part.CoMOffset = Vector3.zero;
-            if(barrelSegments.Count == 0 && constructedMass <= 0)
+            if(barrelSegments.Count == 0 && ConstructedMass <= 0)
                 return;
             part.UpdateMass();
             var ori = part.partTransform.position;
@@ -269,10 +269,10 @@ namespace CargoAccelerators
                 (current, segment) =>
                     current
                     + (segment.segmentGO.transform.TransformPoint(SegmentCoM) - ori) * SegmentMass);
-            if(constructedMass > 0)
+            if(ConstructedMass > 0)
             {
                 var attachmentPoint = getAttachmentTransform();
-                CoM += (attachmentPoint.TransformPoint(SegmentCoM) - ori) * (float)constructedMass;
+                CoM += (attachmentPoint.TransformPoint(SegmentCoM) - ori) * (float)ConstructedMass;
             }
             part.CoMOffset = part.partTransform.InverseTransformDirection(CoM / part.mass);
         }
