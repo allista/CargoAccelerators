@@ -5,6 +5,7 @@ using System.Text;
 using AT_Utils;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace CargoAccelerators
 {
@@ -17,6 +18,7 @@ namespace CargoAccelerators
             PAUSE,
             CONSTRUCTING,
             FINISHED,
+            ABORTED
         }
 
         [SerializeField] public ConstructionRecipe constructionRecipe;
@@ -152,6 +154,42 @@ namespace CargoAccelerators
                 Utils.Message(message);
         }
 
+        public void AbortConstruction()
+        {
+            switch(cState)
+            {
+                case ConstructionState.IDLE:
+                    break;
+                case ConstructionState.DEPLOYING:
+                    cState = ConstructionState.ABORTED;
+                    break;
+                case ConstructionState.PAUSE:
+                case ConstructionState.CONSTRUCTING:
+                    if(ConstructedMass > 0)
+                    {
+                        constructionRecipe?.ReturnMass(part, ConstructedMass, GLB.RecyclingRatio);
+                        trashMass = 0;
+                        ConstructedMass = 0;
+                        UpdateParams();
+                    }
+                    cState = ConstructionState.ABORTED;
+                    break;
+                case ConstructionState.FINISHED:
+                    break;
+                case ConstructionState.ABORTED:
+                    if(updateScaffold(-1))
+                    {
+                        DeploymentProgress = -1;
+                        cState = ConstructionState.IDLE;
+                        changeState(AcceleratorState.IDLE);
+                        updateVesselSize();
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         private void constructionUpdate()
         {
             switch(cState)
@@ -189,6 +227,8 @@ namespace CargoAccelerators
                     cState = ConstructionState.IDLE;
                     changeState(AcceleratorState.IDLE);
                     UpdateParams();
+                    break;
+                case ConstructionState.ABORTED:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -363,6 +403,27 @@ namespace CargoAccelerators
             }
             trashMass = usedMass;
             return 0;
+        }
+
+        public void ReturnMass(Part toPart, double mass, double ratio)
+        {
+            var massToReturn = mass;
+            var chunk = massToReturn / 10.0;
+            var success = true;
+            while(success && massToReturn > 0)
+            {
+                chunk = Math.Min(chunk, massToReturn);
+                foreach(var r in Inputs)
+                {
+                    var demand = r.UnitsPerMass * chunk;
+                    if(r.def.density > 0)
+                        demand *= ratio;
+                    var consumed = toPart.RequestResource(r.id, -demand);
+                    if(consumed / demand <= ShutdownThreshold)
+                        success = false;
+                }
+                massToReturn -= chunk;
+            }
         }
     }
 }

@@ -21,6 +21,7 @@ namespace CargoAccelerators.UI
             Controller.closeButton.onClick.AddListener(close);
             Controller.colorsButton.onClick.AddListener(toggleColors);
             Controller.startStopButton.onClick.AddListener(startStop);
+            Controller.abortButton.onClick.AddListener(onAbort);
             Controller.title.text = accelerator.Title();
             Update();
         }
@@ -64,6 +65,32 @@ namespace CargoAccelerators.UI
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        private void abort()
+        {
+            if(accelerator == null)
+                return;
+            accelerator.AbortConstruction();
+            if(accelerator.cState == OrbitalAccelerator.ConstructionState.ABORTED)
+                Utils.Message("Press ABORT again to return the accelerator to normal operation");
+        }
+
+        private void onAbort()
+        {
+            if(accelerator == null || accelerator.cState == OrbitalAccelerator.ConstructionState.IDLE)
+                return;
+            if(accelerator.ConstructedMass > 0)
+                DialogFactory.Show($"<b>Only {Globals.Instance.RecyclingRatio:P}</b> of resources can be recovered.\n"
+                                   + "If you don't have enough storage or energy some resources will also be lost.\n"
+                                   + "<b>Are you sure you want to abort?</b>",
+                    "Warning",
+                    abort,
+                    confirmText: "Abort",
+                    cancelText: "Cancel",
+                    context: this);
+            else
+                abort();
         }
 
         public void Update()
@@ -139,11 +166,19 @@ namespace CargoAccelerators.UI
                         Controller.stateColorizer.SetColor(Colors.Good);
                         Controller.UpdateProgress(1, 1);
                         break;
+                    case OrbitalAccelerator.ConstructionState.ABORTED:
+                        Controller.state.text = "Construction aborted";
+                        Controller.startStopButtonText.text = "Start";
+                        Controller.startStopTooltip.text = "Start construction";
+                        Controller.stateColorizer.SetColor(Colors.Danger);
+                        Controller.UpdateProgress(-1, 1);
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
                 var noDialogIsOpened = !DialogFactory.ContextIsActive(this);
                 Controller.startStopButton.SetInteractable(accelerator.CanConstruct && noDialogIsOpened);
+                Controller.abortButton.SetInteractable(accelerator.CanAbortConstruction && noDialogIsOpened);
             }
         }
     }
