@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using AT_Utils;
-using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace CargoAccelerators
 {
@@ -330,8 +328,8 @@ namespace CargoAccelerators
         /// <summary>
         /// The recipe for the production of the construction mass.
         /// </summary>
-        // ReSharper disable once CollectionNeverUpdated.Global
         [Persistent]
+        [SuppressMessage("ReSharper", "CollectionNeverUpdated.Global")]
         public PersistentList<RecipeComponent> Inputs = new PersistentList<RecipeComponent>();
 
         public float CostPerMass { get; private set; }
