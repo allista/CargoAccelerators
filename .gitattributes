@@ -1,0 +1,4 @@
+GameData/CargoAccelerators/Parts/OrbitalAccelerator/OrbitalAccelerator_DIFF.png filter=lfs diff=lfs merge=lfs -text
+GameData/CargoAccelerators/Parts/OrbitalAccelerator/OrbitalAccelerator_BSPEC.png filter=lfs diff=lfs merge=lfs -text
+GameData/CargoAccelerators/Parts/OrbitalAccelerator/OrbitalAccelerator.mu filter=lfs diff=lfs merge=lfs -text
+GameData/CargoAccelerators/Parts/OrbitalAccelerator/OrbitalAccelerator_NRM-map.png filter=lfs diff=lfs merge=lfs -text

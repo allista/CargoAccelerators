@@ -7,8 +7,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: No Name
-    second: {fileID: 2100000, guid: 4df5f70ae9e2ed07eb8f0153cc388c71, type: 2}
+      name: OrbitalAccelerator-main
+    second: {fileID: 2100000, guid: 174ff3f14c5b44a6f8642ccff769381b, type: 2}
   materials:
     importMaterials: 1
     materialName: 0
