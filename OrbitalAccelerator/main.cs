@@ -130,6 +130,7 @@ namespace CargoAccelerators
             if(axisController == null || vsl != vessel || vsl == null)
                 return;
             axisController.UpdateTorqueProviders();
+            updateWorkforce();
         }
 
         private void onVesselCrewWasModified(Vessel vsl)
