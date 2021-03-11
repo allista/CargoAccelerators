@@ -41,6 +41,7 @@ namespace CargoAccelerators
 
         [field: KSPField(isPersistant = true)] public float DeploymentProgress { get; private set; } = -1;
         [field: KSPField(isPersistant = true)] public double ConstructedMass { get; private set; }
+        private double lastConstructedMass = -1;
 
         [KSPField(isPersistant = true)] private double trashMass;
 
@@ -206,6 +207,12 @@ namespace CargoAccelerators
                 case ConstructionState.PAUSE:
                     break;
                 case ConstructionState.CONSTRUCTING:
+                    if(lastConstructedMass < 0
+                       || (ConstructedMass - lastConstructedMass) / SegmentMass > 1e-3)
+                    {
+                        lastConstructedMass = ConstructedMass;
+                        updatePhysicsParams();
+                    }
                     break;
                 case ConstructionState.FINISHED:
                     if(!updateScaffold(-1))
@@ -266,7 +273,6 @@ namespace CargoAccelerators
                 ConstructedMass += constructed;
                 dT -= chunk;
             }
-            updatePhysicsParams();
         }
     }
 
