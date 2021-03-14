@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: OrbitalAcceleratorMaterial
-  m_Shader: {fileID: 4800000, guid: bb26f6099b797b5419544954cf467e85, type: 3}
+  m_Name: OrbitalAcceleratorMaterial-segment
+  m_Shader: {fileID: 4800000, guid: eb694e6531825ce41bcd11360ea5c3fd, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0

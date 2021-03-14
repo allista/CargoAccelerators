@@ -9,6 +9,16 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: OrbitalAccelerator-main
     second: {fileID: 2100000, guid: 174ff3f14c5b44a6f8642ccff769381b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: OrbitalAccelerator-scaffold
+    second: {fileID: 2100000, guid: 68e8b0f38b3749f5f9ecaea4d61115aa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: OrbitalAccelerator-segment
+    second: {fileID: 2100000, guid: f15cd49cd3668b533acce39209a66cb0, type: 2}
   materials:
     importMaterials: 1
     materialName: 0
