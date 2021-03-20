@@ -22,7 +22,7 @@ namespace CargoAccelerators
         [SerializeField] public ConstructionRecipe constructionRecipe;
 
         [KSPField] public Vector3 ScaffoldStartScale = new Vector3(1, 1, 0.01f);
-        [KSPField] public float ScaffoldDeployTime = 600f;
+        [KSPField] public float ScaffoldDeployTime = 1800f;
         [KSPField] public float SpecialistMinWorkforce = 0.5f;
 
         [KSPField(isPersistant = true,
