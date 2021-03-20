@@ -64,6 +64,9 @@ namespace CargoAccelerators
             axisController = null;
             UI?.Close();
             cUI?.Close();
+#if NIGHTBUILD
+            GlobalsReloader.RemoveListener(onGlobalsLoaded);
+#endif
         }
 
         public override void OnLoad(ConfigNode node)
@@ -130,7 +133,17 @@ namespace CargoAccelerators
             if(numSegmentsField.uiControlFlight is UI_FloatRange numSegmentsControlFlight)
                 numSegmentsControlFlight.maxValue = MaxSegments;
             numSegmentsField.guiActive = GLB.TestingMode;
+#if NIGHTBUILD
+            GlobalsReloader.AddListener(onGlobalsLoaded);
+#endif
         }
+
+#if NIGHTBUILD
+        private void onGlobalsLoaded()
+        {
+            Fields[nameof(numSegments)].guiActive = GLB.TestingMode;
+        }
+#endif
 
         private void onVesselWasModified(Vessel vsl)
         {

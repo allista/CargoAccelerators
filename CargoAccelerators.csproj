@@ -18,7 +18,7 @@
         <DebugType>full</DebugType>
         <Optimize>false</Optimize>
         <OutputPath>GameData\CargoAccelerators\Plugins</OutputPath>
-        <DefineConstants>DEBUG;TRACE;ENABLE_PROFILER</DefineConstants>
+        <DefineConstants>DEBUG;TRACE;ENABLE_PROFILER;NIGHTBUILD</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
@@ -65,6 +65,9 @@
             <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
+        <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+        </Reference>
         <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
             <Private>False</Private>
@@ -83,6 +86,7 @@
         <Compile Include="ExtensibleRCS.cs" />
         <Compile Include="ExtensibleMagneticDamper.cs" />
         <Compile Include="Globals.cs" />
+        <Compile Include="GlobalsReloader.cs" />
         <Compile Include="OrbitalAccelerator\construction.cs" />
         <Compile Include="OrbitalAccelerator\docking.cs" />
         <Compile Include="OrbitalAccelerator\interfaces.cs" />
