@@ -102,14 +102,7 @@ namespace CargoAccelerators
             }
             if(!updateSegments((int)numSegments) || !updateScaffold(DeploymentProgress))
                 this.ConfigurationInvalid("Unable to initialize dynamic model components");
-            // num segments field controls for development
-            var numSegmentsField = Fields[nameof(numSegments)];
-            numSegmentsField.OnValueModified += onNumSegmentsChange;
-            if(numSegmentsField.uiControlEditor is UI_FloatRange numSegmentsControlEditor)
-                numSegmentsControlEditor.maxValue = MaxSegments;
-            if(numSegmentsField.uiControlFlight is UI_FloatRange numSegmentsControlFlight)
-                numSegmentsControlFlight.maxValue = MaxSegments;
-            numSegmentsField.guiActive = GLB.TestingMode;
+            setupNumSegmentsControls();
             Fields[nameof(ShowUI)].OnValueModified += showUI;
             Fields[nameof(ShowConstructionUI)].OnValueModified += showConstructionUI;
             axisController = new AxisAttitudeController(this);
@@ -123,6 +116,20 @@ namespace CargoAccelerators
             updateWorkforce();
             UpdateParams();
             UpdateSegmentCost();
+        }
+
+        /// <summary>
+        /// Set up numSegments field controls
+        /// </summary>
+        private void setupNumSegmentsControls()
+        {
+            var numSegmentsField = Fields[nameof(numSegments)];
+            numSegmentsField.OnValueModified += onNumSegmentsChange;
+            if(numSegmentsField.uiControlEditor is UI_FloatRange numSegmentsControlEditor)
+                numSegmentsControlEditor.maxValue = MaxSegments;
+            if(numSegmentsField.uiControlFlight is UI_FloatRange numSegmentsControlFlight)
+                numSegmentsControlFlight.maxValue = MaxSegments;
+            numSegmentsField.guiActive = GLB.TestingMode;
         }
 
         private void onVesselWasModified(Vessel vsl)
