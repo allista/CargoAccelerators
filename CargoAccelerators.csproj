@@ -21,6 +21,8 @@
         <DefineConstants>DEBUG;TRACE;ENABLE_PROFILER;NIGHTBUILD</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
+        <NoWarn>0169</NoWarn>
+        <LangVersion>Default</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -29,12 +31,16 @@
         <OutputPath>GameData\CargoAccelerators\Plugins</OutputPath>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
+        <NoWarn>0169</NoWarn>
+        <LangVersion>Default</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Nightbuild|AnyCPU' ">
         <Optimize>true</Optimize>
         <OutputPath>GameData\CargoAccelerators\Plugins</OutputPath>
         <WarningLevel>4</WarningLevel>
         <DefineConstants>NIGHTBUILD</DefineConstants>
+        <NoWarn>0169</NoWarn>
+        <LangVersion>Default</LangVersion>
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="System">
