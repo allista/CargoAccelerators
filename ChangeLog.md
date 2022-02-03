@@ -1,5 +1,21 @@
 # Cargo Accelerators ChangeLog
 
+* **v0.3.0.0**
+    * KSP: 1.11.1
+    * Orbital Accelerator
+        * integrated **textures** made by @JadeOfMaar
+        * lowerd mean density to 1.5t/m3
+        * decreased deployment and construction speed
+        * improved model in-game performance
+        * added all colliders
+    * UI:
+        * Added **Construction Widnow** to control segment construcion
+        * Construction can now be aborted via UI at any stage
+        * Extended the range of PAW controls to 500m
+    * Added remote connection capability: no more need to enter the loading chamber
+        to communicate with an accelerator
+    * Workforce is updated on vessel change (e.g. on dock) as well as on crew change
+    * Fixed FPS drop in CONSTRUCTION state
 
 * **v0.2.1.1**
     * Compiled against AT_Utils-1.9.6
