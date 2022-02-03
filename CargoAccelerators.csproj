@@ -124,7 +124,7 @@
             <Private>False</Private>
         </ProjectReference>
         <ProjectReference Include="CA.UI\CA.UI.csproj">
-            <Project>{55e33136-32bd-4c5f-979d-d8ac9170e41e}</Project>
+            <Project>{5A0C020E-9999-4AB4-BB31-793750FA3179}</Project>
             <Name>CA.UI</Name>
             <Private>True</Private>
         </ProjectReference>
