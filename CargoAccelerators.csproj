@@ -73,6 +73,7 @@
         </Reference>
         <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+          <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
