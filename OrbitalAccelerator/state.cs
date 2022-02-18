@@ -15,6 +15,8 @@ namespace CargoAccelerators
             ABORT,
             FINISH_LAUNCH,
             UNDER_CONSTRUCTION,
+            CONNECT_TO_PAYLOAD,
+            CONNECTED,
         }
 
         private void changeState(AcceleratorState newState)
@@ -41,6 +43,28 @@ namespace CargoAccelerators
                 launchingDamper.EnableDamper(false);
         }
 
+        private void checkPayloadConnection(AcceleratorState onSuccessState)
+        {
+            UI.UpdatePayloadInfo();
+            ToggleAutoAlign(false);
+            changeState(launchParams != null
+                ? onSuccessState
+                : AcceleratorState.IDLE);
+        }
+
+        private bool checkVesselDistance(Vessel vsl)
+        {
+            if(vsl.loaded
+               && (loadingDamper.attractor.position
+                   - vsl.CurrentCoM).magnitude
+               < MaxConnectionDistance)
+                return true;
+            ToggleAutoAlign(false);
+            UI.AddMessage("Too far away for remote connection.\n"
+                          + $"Have to be closer than {MaxConnectionDistance:F0} m.");
+            return false;
+        }
+
         private void Update()
         {
             if(!HighLogic.LoadedSceneIsFlight || FlightDriver.Pause)
@@ -65,6 +89,32 @@ namespace CargoAccelerators
                     else if(!string.IsNullOrEmpty(error))
                         UI.SetMessage(error);
                     break;
+                case AcceleratorState.CONNECT_TO_PAYLOAD:
+                    Vessel connectToVessel = null;
+                    if(vessel.isActiveVessel)
+                    {
+                        if(vessel.targetObject != null)
+                            connectToVessel = vessel.targetObject.GetVessel();
+                    }
+                    else
+                        connectToVessel = FlightGlobals.ActiveVessel;
+                    if(connectToVessel != null
+                       && checkVesselDistance(connectToVessel))
+                    {
+                        acquirePayload(connectToVessel.persistentId);
+                        checkPayloadConnection(AcceleratorState.CONNECTED);
+                        break;
+                    }
+                    changeState(AcceleratorState.IDLE);
+                    break;
+                case AcceleratorState.CONNECTED:
+                    if(launchingDamper.DamperEnabled)
+                        launchingDamper.EnableDamper(false);
+                    if(launchParams == null
+                       || getLoadedVesselId(out _).HasValue
+                       || !checkVesselDistance(launchParams.payload))
+                        changeState(AcceleratorState.IDLE);
+                    break;
                 case AcceleratorState.LOADED:
                     if(!getLoadedVesselId(out _).HasValue)
                         changeState(AcceleratorState.IDLE);
@@ -72,12 +122,8 @@ namespace CargoAccelerators
                         changeState(AcceleratorState.ACQUIRE_PAYLOAD);
                     break;
                 case AcceleratorState.ACQUIRE_PAYLOAD:
-                    acquirePayload();
-                    UI.UpdatePayloadInfo();
-                    ToggleAutoAlign(false);
-                    changeState(launchParams != null
-                        ? AcceleratorState.LOADED
-                        : AcceleratorState.IDLE);
+                    acquireLoadedPayload();
+                    checkPayloadConnection(AcceleratorState.LOADED);
                     break;
                 case AcceleratorState.EJECT:
                     if(loadingDamper.VesselsInside.Count == 0)
@@ -137,7 +183,12 @@ namespace CargoAccelerators
 
         private void LateUpdate()
         {
-            if(!HighLogic.LoadedSceneIsFlight || FlightDriver.Pause || !UI.IsShown)
+            if(FlightDriver.Pause)
+                return;
+            // construction UI
+            cUI.Update();
+            // controls UI
+            if(!HighLogic.LoadedSceneIsFlight || !UI.IsShown)
                 return;
             if(launchParams == null || !launchParams.Valid)
                 return;
@@ -152,7 +203,8 @@ namespace CargoAccelerators
             UI.Controller.UpdateCountdown(launchParams.launchUT
                                           - Planetarium.GetUniversalTime());
             // update payload checks
-            if(part.packed)
+            if(part.packed
+               || State == AcceleratorState.CONNECTED)
                 return;
             var relV = (launchParams.payload.obt_velocity
                         - vessel.obt_velocity).sqrMagnitude;

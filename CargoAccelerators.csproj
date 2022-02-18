@@ -18,9 +18,11 @@
         <DebugType>full</DebugType>
         <Optimize>false</Optimize>
         <OutputPath>GameData\CargoAccelerators\Plugins</OutputPath>
-        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <DefineConstants>DEBUG;TRACE;ENABLE_PROFILER;NIGHTBUILD</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
+        <NoWarn>0169</NoWarn>
+        <LangVersion>Default</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -29,52 +31,60 @@
         <OutputPath>GameData\CargoAccelerators\Plugins</OutputPath>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
+        <NoWarn>0169</NoWarn>
+        <LangVersion>Default</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Nightbuild|AnyCPU' ">
         <Optimize>true</Optimize>
         <OutputPath>GameData\CargoAccelerators\Plugins</OutputPath>
         <WarningLevel>4</WarningLevel>
         <DefineConstants>NIGHTBUILD</DefineConstants>
+        <NoWarn>0169</NoWarn>
+        <LangVersion>Default</LangVersion>
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="System">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\System.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\System.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="Assembly-CSharp">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="System.Core">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\System.Core.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\System.Core.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\UnityEngine.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
+        <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+          <Private>False</Private>
+        </Reference>
         <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.UI">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\UnityEngine.UI.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.UI.dll</HintPath>
             <Private>False</Private>
         </Reference>
     </ItemGroup>
@@ -83,6 +93,7 @@
         <Compile Include="ExtensibleRCS.cs" />
         <Compile Include="ExtensibleMagneticDamper.cs" />
         <Compile Include="Globals.cs" />
+        <Compile Include="GlobalsReloader.cs" />
         <Compile Include="OrbitalAccelerator\construction.cs" />
         <Compile Include="OrbitalAccelerator\docking.cs" />
         <Compile Include="OrbitalAccelerator\interfaces.cs" />
@@ -94,6 +105,7 @@
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="TemporaryDockingNode.cs" />
         <Compile Include="UI\AcceleratorWindow.cs" />
+        <Compile Include="UI\ConstructionWindow.cs" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AT_Utils\AnisotropicPartResizer\AnisotropicPartResizer.csproj">
@@ -112,7 +124,7 @@
             <Private>False</Private>
         </ProjectReference>
         <ProjectReference Include="CA.UI\CA.UI.csproj">
-            <Project>{55e33136-32bd-4c5f-979d-d8ac9170e41e}</Project>
+            <Project>{5A0C020E-9999-4AB4-BB31-793750FA3179}</Project>
             <Name>CA.UI</Name>
             <Private>True</Private>
         </ProjectReference>

@@ -11,24 +11,36 @@ Releases
 
 Library/
 ProjectSettings/
-Assets/**/*.png
-Assets/src/*
-Assets/PartTools/
-Assets/SquadCore/
-Assets/TextMesh Pro/
-Assets/Plugins/KSPAssets/
-
 GameData/CargoAccelerators/Plugins/*.dll
 GameData/CargoAccelerators/Plugins/PluginData/CargoAccelerators/config.xml
 /Assembly-CSharp*.csproj
-/Assets/Editor/FindMissingScripts.cs.cs
-/Assets/Editor/FindMissingScriptsRecursive.cs
-/Assets/Editor/KSPCurveEditor.cs
 /Logs/Packages-Update.log
 /Packages/manifest.json
-/PartTools.cfg
 /CargoAccelerators.sln
 /CargoAccelerators.csproj.DotSettings
 /CA.UI/CA.UI.csproj.DotSettings
 .ipynb_checkpoints
 /notebooks/data
+
+# ignoring source texture files
+/Assets/Textures/src
+/Assets/src
+
+# ignoring utility assets
+/Assets/PartTools/
+/Assets/SquadCore/
+/Assets/TextMesh Pro/
+/Assets/Plugins/KSPAssets/
+/Assets/Editor/FindMissingScripts.cs.cs
+/Assets/Editor/FindMissingScriptsRecursive.cs
+/Assets/Editor/KSPCurveEditor.cs
+/PartTools.cfg
+# and their meta
+/Assets/Editor/FindMissingScripts.cs.cs.meta
+/Assets/Editor/FindMissingScriptsRecursive.cs.meta
+/Assets/Editor/KSPCurveEditor.cs.meta
+/Assets/PartTools.meta
+/Assets/Plugins/KSPAssets.meta
+/Assets/SquadCore.meta
+/Assets/TextMesh Pro.meta
+**/@thumbs

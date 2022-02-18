@@ -42,7 +42,7 @@ namespace CargoAccelerators
 
         private bool setupDockingNode(bool forceStart = true)
         {
-            if(deploymentProgress < 1 || constructionPort != null)
+            if(DeploymentProgress < 1 || constructionPort != null)
                 return true;
             this.Debug($"Setting up docking port");
             if(dockingNodeConfig == null)

@@ -26,11 +26,11 @@ using AT_Utils;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 #if NIGHTBUILD
-[assembly: AssemblyVersion("0.2.*")]
+[assembly: AssemblyVersion("0.3.*")]
 #else
-[assembly: AssemblyVersion("0.2.1.1")]
+[assembly: AssemblyVersion("0.3.0")]
 #endif
-[assembly: KSPAssembly("CargoAccelerators", 0, 2)]
+[assembly: KSPAssembly("CargoAccelerators", 0, 3)]
 
 
 namespace CargoAccelerators
@@ -39,8 +39,8 @@ namespace CargoAccelerators
     {
         public ModInfo()
         {
-            MinKSPVersion = new Version(1, 9, 0);
-            MaxKSPVersion = new Version(1, 10, 0);
+            MinKSPVersion = new Version(1, 11, 1);
+            MaxKSPVersion = new Version(1, 11, 1);
 
             VersionURL =
                 "https://raw.githubusercontent.com/allista/CargoAccelerators/master/GameData/CargoAccelerators/CargoAccelerators.version";

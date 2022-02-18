@@ -12,7 +12,7 @@ namespace CargoAccelerators
             guiName = "Accelerator Controls",
             guiActive = true,
             guiActiveUnfocused = true,
-            unfocusedRange = 50)]
+            unfocusedRange = 500)]
         [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Enabled", disabledText = "Disabled")]
         public bool ShowUI;
 
@@ -26,10 +26,19 @@ namespace CargoAccelerators
 
         public void AcquirePayload()
         {
-            if(State != AcceleratorState.LOADED)
-                return;
-            UI.ClearMessages();
-            changeState(AcceleratorState.ACQUIRE_PAYLOAD);
+            // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+            switch(State)
+            {
+                case AcceleratorState.LOADED:
+                    UI.ClearMessages();
+                    changeState(AcceleratorState.ACQUIRE_PAYLOAD);
+                    break;
+                case AcceleratorState.IDLE:
+                case AcceleratorState.CONNECTED:
+                    UI.ClearMessages();
+                    changeState(AcceleratorState.CONNECT_TO_PAYLOAD);
+                    break;
+            }
         }
 
         public void EjectPayload()
@@ -42,6 +51,7 @@ namespace CargoAccelerators
 
         public void AbortOperations()
         {
+            // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch(State)
             {
                 case AcceleratorState.EJECT:
@@ -50,7 +60,7 @@ namespace CargoAccelerators
                     break;
                 case AcceleratorState.LAUNCH:
                     UI.ClearMessages();
-                    TimeWarp.SetRate(0, false);
+                    Utils.StopTimeWarp();
                     changeState(AcceleratorState.ABORT);
                     break;
             }

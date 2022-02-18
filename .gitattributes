@@ -1,0 +1,10 @@
+Assets/Textures/OrbitalAccelerator_BSPEC.png filter=lfs diff=lfs merge=lfs -text
+Assets/Textures/OrbitalAccelerator_DIFF.png filter=lfs diff=lfs merge=lfs -text
+Assets/Textures/OrbitalAccelerator_NRM.png filter=lfs diff=lfs merge=lfs -text
+Assets/Textures/OrbitalAccelerator_NRM-map.png filter=lfs diff=lfs merge=lfs -text
+Assets/Textures/OrbitalAccelerator_SPEC.png filter=lfs diff=lfs merge=lfs -text
+Assets/OrbitalAccelerator.blend filter=lfs diff=lfs merge=lfs -text
+GameData/CargoAccelerators/Parts/OrbitalAccelerator/OrbitalAccelerator_DIFF.png filter=lfs diff=lfs merge=lfs -text
+GameData/CargoAccelerators/Parts/OrbitalAccelerator/OrbitalAccelerator_BSPEC.png filter=lfs diff=lfs merge=lfs -text
+GameData/CargoAccelerators/Parts/OrbitalAccelerator/OrbitalAccelerator.mu filter=lfs diff=lfs merge=lfs -text
+GameData/CargoAccelerators/Parts/OrbitalAccelerator/OrbitalAccelerator_NRM-map.png filter=lfs diff=lfs merge=lfs -text

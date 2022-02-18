@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<KSPBundleDefinition xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" UrlName="ca_ui.bundle" Name="ca_ui.bundle" CreatedTime="-8586057589159252138">
+<KSPBundleDefinition xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" UrlName="ca_ui.bundle" Name="ca_ui.bundle" CreatedTime="-8585870542822061588">
   <Author>Allis Tauri</Author>
   <Info>allista@gmail.com</Info>
   <Assets>
     <Asset Name="AcceleratorUI" Path="Assets/UI/CA/AcceleratorUI.prefab" Type="GameObject" Url="UI/CA/AcceleratorUI" AutoLoad="false" />
+    <Asset Name="ConstructionUI" Path="Assets/UI/CA/ConstructionUI.prefab" Type="GameObject" Url="UI/CA/ConstructionUI" AutoLoad="false" />
+    <Asset Name="ResourceInfoUI" Path="Assets/UI/CA/ResourceInfoUI.prefab" Type="GameObject" Url="UI/CA/ResourceInfoUI" AutoLoad="false" />
   </Assets>
   <Dependencies>
     <Dependency>at_utils_ui.bundle</Dependency>

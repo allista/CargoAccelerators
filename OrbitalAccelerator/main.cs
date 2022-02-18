@@ -11,11 +11,13 @@ namespace CargoAccelerators
 
         [KSPField] public string LoadingDamperID = "LoadingDamper";
         [KSPField] public string LaunchingDamperID = "LaunchingDamper";
+        [KSPField] public float MaxConnectionDistance = 300;
 
         [KSPField(isPersistant = true)] public AcceleratorState State = AcceleratorState.IDLE;
         [KSPField(isPersistant = true)] public bool AutoAlignEnabled;
 
         private AcceleratorWindow UI;
+        private ConstructionWindow cUI;
         private AxisAttitudeController axisController;
         public ATMagneticDamper loadingDamper;
         public ExtensibleMagneticDamper launchingDamper;
@@ -55,11 +57,16 @@ namespace CargoAccelerators
             }
             Fields[nameof(numSegments)].OnValueModified -= onNumSegmentsChange;
             Fields[nameof(ShowUI)].OnValueModified -= showUI;
+            Fields[nameof(ShowConstructionUI)].OnValueModified -= showConstructionUI;
             GameEvents.onVesselWasModified.Remove(onVesselWasModified);
             GameEvents.onVesselCrewWasModified.Remove(onVesselCrewWasModified);
             axisController?.Disconnect();
             axisController = null;
             UI?.Close();
+            cUI?.Close();
+#if NIGHTBUILD
+            GlobalsReloader.RemoveListener(onGlobalsLoaded);
+#endif
         }
 
         public override void OnLoad(ConfigNode node)
@@ -96,32 +103,54 @@ namespace CargoAccelerators
                 this.ConfigurationInvalid($"Unable to find launching damper with ID {LoadingDamperID}");
                 return;
             }
-            if(!updateSegments((int)numSegments) || !updateScaffold(deploymentProgress))
+            if(!updateSegments((int)numSegments) || !updateScaffold(DeploymentProgress))
                 this.ConfigurationInvalid("Unable to initialize dynamic model components");
-            var numSegmentsField = Fields[nameof(numSegments)];
-            numSegmentsField.OnValueModified += onNumSegmentsChange;
-            if(numSegmentsField.uiControlEditor is UI_FloatRange numSegmentsControlEditor)
-                numSegmentsControlEditor.maxValue = MaxSegments;
-            if(numSegmentsField.uiControlFlight is UI_FloatRange numSegmentsControlFlight)
-                numSegmentsControlFlight.maxValue = MaxSegments;
+            setupNumSegmentsControls();
             Fields[nameof(ShowUI)].OnValueModified += showUI;
-            Fields[nameof(BuildSegment)].OnValueModified += onBuildSegmentChange;
-            Fields[nameof(numSegments)].guiActive = GLB.TestingMode;
+            Fields[nameof(ShowConstructionUI)].OnValueModified += showConstructionUI;
             axisController = new AxisAttitudeController(this);
             UI = new AcceleratorWindow(this);
             if(ShowUI)
                 UI.Show(this);
+            cUI = new ConstructionWindow(this);
+            if(ShowConstructionUI)
+                cUI.Show(this);
             fixConstructionState();
             updateWorkforce();
             UpdateParams();
             UpdateSegmentCost();
         }
 
+        /// <summary>
+        /// Set up numSegments field controls
+        /// </summary>
+        private void setupNumSegmentsControls()
+        {
+            var numSegmentsField = Fields[nameof(numSegments)];
+            numSegmentsField.OnValueModified += onNumSegmentsChange;
+            if(numSegmentsField.uiControlEditor is UI_FloatRange numSegmentsControlEditor)
+                numSegmentsControlEditor.maxValue = MaxSegments;
+            if(numSegmentsField.uiControlFlight is UI_FloatRange numSegmentsControlFlight)
+                numSegmentsControlFlight.maxValue = MaxSegments;
+            numSegmentsField.guiActive = GLB.TestingMode;
+#if NIGHTBUILD
+            GlobalsReloader.AddListener(onGlobalsLoaded);
+#endif
+        }
+
+#if NIGHTBUILD
+        private void onGlobalsLoaded()
+        {
+            Fields[nameof(numSegments)].guiActive = GLB.TestingMode;
+        }
+#endif
+
         private void onVesselWasModified(Vessel vsl)
         {
             if(axisController == null || vsl != vessel || vsl == null)
                 return;
             axisController.UpdateTorqueProviders();
+            updateWorkforce();
         }
 
         private void onVesselCrewWasModified(Vessel vsl)

@@ -27,5 +27,7 @@ namespace CargoAccelerators
         public float LAUNCH_WINDOW = 0.2f;
 
         [Persistent] public bool TestingMode = false;
+
+        [Persistent] public float RecyclingRatio = 0.3f;
     }
 }
