@@ -1,5 +1,10 @@
 # Cargo Accelerators Change Log
 
+## v0.3.0.1 / 2022-04-01
+
+* Compiled for KSP 1.12.3 and latest AT_Utils
+* Internal project changes for CI/CD
+
 ## v0.3.0.0
 
 * KSP: 1.11.1
